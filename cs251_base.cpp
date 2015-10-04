@@ -47,17 +47,187 @@ base_sim_t::base_sim_t()
 
 }
 
-/*void base_sim_t::launch()
+void base_sim_t::launch()
         {
+          /*          
+          b2BodyDef bodyDef;
+          bodyDef.type = b2_dynamicBody;
+          b2FixtureDef fixtureDef;
+          fixtureDef.density = 1;
+          
+          //two boxes
+          b2PolygonShape squareShapeA;
+          squareShapeA.SetAsBox(5,3);
+          b2PolygonShape squareShapeB;
+          squareShapeB.SetAsBox(1,4);
+          
+          //large box a little to the left
+          bodyDef.position.Set(-20, 10);
+          fixtureDef.shape = &squareShapeA;
+          b2Body* m_bodyA = m_world->CreateBody(&bodyDef);
+          m_bodyA = m_world->CreateBody( &bodyDef );
+          m_bodyA->CreateFixture( &fixtureDef );
+          
+          //smaller box a little to the right
+          bodyDef.position.Set( -4, 10);
+          fixtureDef.shape = &squareShapeB;
+          b2Body* m_bodyB = m_world->CreateBody(&bodyDef);
+          m_bodyB = m_world->CreateBody( &bodyDef );
+          m_bodyB->CreateFixture( &fixtureDef );
 
-        //{
-          //extern b2PrismaticJointDef cs251::dominos_t::launcherJoint;
-          //launcherJoint.enableMotor = true;
-          //launcherJoint.maxMotorForce = 500;//this is a powerful machine after all...
-          //launcherJoint.motorSpeed = 5;//5 units per second in positive axis direction
-        //}
+          b2PrismaticJointDef prismaticJointDef;
+          prismaticJointDef.bodyA = m_bodyA;
+          prismaticJointDef.bodyB = m_bodyB;
+          prismaticJointDef.localAnchorA.Set( 6,-3);//a little outside the bottom right corner
+          prismaticJointDef.localAnchorB.Set(-1,-4);//bottom left corner
+          prismaticJointDef.enableLimit = true;
+          prismaticJointDef.lowerTranslation = 0;
+          prismaticJointDef.upperTranslation = 10;
+          prismaticJointDef.collideConnected = true;
 
-        }*/
+          m_world->CreateJoint( &prismaticJointDef );*/
+        {
+          extern b2PrismaticJointDef launcherJoint;
+          //launcherJoint.referenceAngle = 0.0174532925*90;
+          //launcherJoint.localAxisA.Set(0,1);
+          launcherJoint.enableLimit = true;
+          launcherJoint.lowerTranslation = 0;
+          launcherJoint.upperTranslation = 2;
+          launcherJoint.enableMotor = true;
+          launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
+          launcherJoint.motorSpeed = 50;//5 units per second in positive axis direction
+          
+          m_world->CreateJoint(&launcherJoint);
+          //launcherJoint.motorSpeed = -5;
+          //m_world->CreateJoint(&launcherJoint);
+          launcherJoint.enableMotor = false;          
+        }
+
+
+
+        }
+
+void base_sim_t::delaunch()
+{
+  {
+          extern b2PrismaticJointDef launcherJoint;
+          //launcherJoint.referenceAngle = 0.0174532925*90;
+          //launcherJoint.localAxisA.Set(0,1);
+          launcherJoint.enableLimit = true;
+          launcherJoint.lowerTranslation = 0;
+          launcherJoint.upperTranslation = 2;
+          launcherJoint.enableMotor = true;
+          launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
+          launcherJoint.motorSpeed = -50;//5 units per second in positive axis direction
+          
+          m_world->CreateJoint(&launcherJoint);
+          //launcherJoint.motorSpeed = -5;
+          //m_world->CreateJoint(&launcherJoint);
+          launcherJoint.enableMotor = false;
+  }
+}
+
+void base_sim_t::launch2()
+        {
+          {
+            extern b2PrismaticJointDef launcherJoint2;
+            launcherJoint2.enableLimit = true;
+            launcherJoint2.lowerTranslation = 0;
+            launcherJoint2.upperTranslation = 0.7;
+            launcherJoint2.enableMotor = true;
+            launcherJoint2.maxMotorForce = 5000;//this is a powerful machine after all...
+            launcherJoint2.motorSpeed = 32;//5 units per second in positive axis direction
+            
+            m_world->CreateJoint(&launcherJoint2);
+            launcherJoint2.enableMotor = false;          
+          }
+        }
+
+void base_sim_t::delaunch2()
+{
+  {
+          extern b2PrismaticJointDef launcherJoint2;
+          launcherJoint2.enableLimit = true;
+          launcherJoint2.lowerTranslation = 0;
+          launcherJoint2.upperTranslation = 0.7;
+          launcherJoint2.enableMotor = true;
+          launcherJoint2.maxMotorForce = 5000;//this is a powerful machine after all...
+          launcherJoint2.motorSpeed = -32;//5 units per second in positive axis direction
+          
+          m_world->CreateJoint(&launcherJoint2);
+          launcherJoint2.enableMotor = false;
+  }
+}
+
+void base_sim_t::ball()
+{
+    //extern b2BodyDef ballBodyDef;
+    //extern b2FixtureDef ballFixtureDef;
+    extern b2Body* ballBody;
+    ballBody->SetTransform(b2Vec2(10,20), 0);
+    //m_world->DestroyBody(ballBody); //this is to delete the ball
+    //ballBody = m_world->CreateBody(&ballBodyDef); //add body to world
+    //ballBody->CreateFixture(&ballFixtureDef); //add fixture to body
+    //delete ballBody;
+}
+
+/*void base_sim_t::createball()
+{
+    extern b2BodyDef ballBodyDef;
+    extern b2FixtureDef ballFixtureDef;
+    extern b2Body* ballBody;
+    //m_world->DestroyBody(ballBody);
+    ballBody = m_world->CreateBody(&ballBodyDef); //add body to world
+    ballBody->CreateFixture(&ballFixtureDef); //add fixture to body
+}*/
+
+void base_sim_t::flipperleft()
+{
+    extern b2Body* flipperleftbody;
+    //flipperleftbody->SetLinearVelocity( b2Vec2(0,10) );
+    flipperleftbody->ApplyLinearImpulse( b2Vec2(0,50), flipperleftbody->GetWorldCenter(), 1 );
+    
+    //check for coming down slowly
+    //flipperleftbody->ApplyAngularImpulse( 10 , 1);
+    /*extern b2Body* flipperwheelrightbody;
+    //b2RevoluteJointDef wheeljointDef1;
+    flipperwheelrightbody->ApplyLinearImpulse( b2Vec2(0,-50), flipperwheelrightbody->GetWorldCenter(), 1 );*/
+
+}
+
+void base_sim_t::flipperright()
+{
+    extern b2Body* flipperrightbody;
+    flipperrightbody->ApplyLinearImpulse( b2Vec2(0,50), flipperrightbody->GetWorldCenter(), 1 );
+    /*extern b2Body* flipperwheelrightbody;
+    //b2RevoluteJointDef wheeljointDef1;
+    flipperwheelrightbody->ApplyLinearImpulse( b2Vec2(0,50), flipperwheelrightbody->GetWorldCenter(), 1 );
+    extern b2Body* flipperwheelupbody;
+    //b2RevoluteJointDef wheeljointDef1;
+    flipperwheelupbody->ApplyLinearImpulse( b2Vec2(50,0), flipperwheelupbody->GetWorldCenter(), 1 );
+    //flipperwheelupbody->ApplyLinearImpulse( b2Vec2(0,50), flipperwheelupbody->GetWorldCenter(), 1 );        
+    extern b2Body* flipperwheelleftbody;
+    flipperwheelleftbody->ApplyLinearImpulse( b2Vec2(0,-50), flipperwheelleftbody->GetWorldCenter(), 1 );
+    extern b2Body* flipperwheeldownbody;
+    flipperwheeldownbody->ApplyLinearImpulse( b2Vec2(-50,0), flipperwheeldownbody->GetWorldCenter(), 1 );*/
+
+}
+
+void base_sim_t::flipperwheelright()
+{
+    extern b2Body* flipperrotbody1;
+    flipperrotbody1->SetAngularVelocity( -5 );
+    extern b2Body* flipperrotbody2;
+    flipperrotbody2->SetAngularVelocity( -5 );
+}
+
+void base_sim_t::flipperwheelleft()
+{
+    extern b2Body* flipperrotbody1;
+    flipperrotbody1->SetAngularVelocity( 5 );
+    extern b2Body* flipperrotbody2;
+    flipperrotbody2->SetAngularVelocity( 5 );
+}
 
 base_sim_t::~base_sim_t()
 {

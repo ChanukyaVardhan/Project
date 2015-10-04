@@ -36,6 +36,21 @@
 namespace cs251
 {
 
+  extern b2PrismaticJointDef launcherJoint;
+  extern b2PrismaticJointDef launcherJoint2;
+  extern b2Body* ballBody;
+  extern b2Body* flipperleftbody;
+  extern b2Body* flipperrightbody;
+  extern b2Body* flipperwheelrightbody;
+  extern b2Body* flipperwheelupbody;
+  extern b2Body* flipperwheellefttbody;
+  extern b2Body* flipperwheeldownbody;
+  //extern b2RevoluteJointDef wheeljointDef1;
+  extern b2BodyDef ballBodyDef;
+  extern b2FixtureDef ballFixtureDef;
+  extern b2Body* flipperrotbody1;
+  extern b2Body* flipperrotbody2;
+
   //! What is the difference between a class and a struct in C++?
   class base_sim_t;
   struct settings_t;
@@ -120,8 +135,16 @@ namespace cs251
   public:
     
     base_sim_t();
-        void launch();
-
+    void launch();
+    void delaunch();
+    void launch2();
+    void delaunch2();
+    void ball();
+    void flipperleft();
+    void flipperright();
+    void flipperwheelright();
+    void flipperwheelleft();
+    //void createball();
 
     //! Virtual destructors - amazing objects. Why are these necessary?
     virtual ~base_sim_t();

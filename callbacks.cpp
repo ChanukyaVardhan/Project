@@ -117,15 +117,46 @@ namespace cs251
       settings.pause = !settings.pause;
       break;
 
-    /*case 's':
-      //delete test;
-      //test = entry->create_fcn();
-      //(test)->launch();
-      extern b2PrismaticJointDef launcherJoint;
-          launcherJoint.enableMotor = true;
-          launcherJoint.maxMotorForce = 500;//this is a powerful machine after all...
-          launcherJoint.motorSpeed = 5;//5 units per second in positive axis direction
+    case 'w':
+      (test)->launch();
+      break;
+
+    case 's':
+      (test)->delaunch();
+      break;
+
+    case '8':
+      (test)->launch2();
+      break;
+
+    case '2':
+      (test)->delaunch2();
+      break;
+
+    case 'n':
+      (test)->ball();
+      break;
+
+    /*case 'm':
+      (test)->createball();
       break;*/
+
+    case 'a':
+      (test)->flipperleft();
+      break;
+
+    case 'd':
+      (test)->flipperright();
+      //(test)->flipperwheelright();
+      break;
+
+    case '4':
+      (test)->flipperwheelleft();
+      break;
+
+    case '6':
+      (test)->flipperwheelright();
+      break;
       
       //! The default case. Why is this needed?
     default:
