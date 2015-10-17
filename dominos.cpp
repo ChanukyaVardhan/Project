@@ -27,9 +27,9 @@
 #include "render.hpp"
 
 #ifdef __APPLE__
-	#include <GLUT/glut.h>
+  #include <GLUT/glut.h>
 #else
-	#include "GL/freeglut.h"
+  #include "GL/freeglut.h"
 #endif
 
 #include <cstring>
@@ -39,147 +39,25 @@ using namespace std;
 
 namespace cs251
 {
-  	b2PrismaticJointDef launcherJoint;
+  /**  The is the constructor 
+   * This is the documentation block for the constructor.
+   */ 
+          
+
+    b2PrismaticJointDef launcherJoint;
     b2PrismaticJointDef launcherJoint2;
     b2Body* ballBody;
     b2Body* flipperleftbody;
     b2Body* flipperrightbody;
+    b2Body* flipperwheelrightbody;
+    b2Body* flipperwheelupbody;
+    b2Body* flipperwheelleftbody;
+    b2Body* flipperwheeldownbody;
     b2Body* flipperrotbody1;
     b2Body* flipperrotbody2;
+    //b2RevoluteJointDef wheeljointDef1;
     b2BodyDef ballBodyDef;
     b2FixtureDef ballFixtureDef;
-  /********************************************//**
-   * -<b> These are the extern variables used for keyboard controlling </b>\n
-   * b2PrismaticJointDef launcherJoint,launcherJoint2 - joints for both the launchers on the Right \n
-   * b2Body* ballBody - body object for the ball \n
-   * b2BodyDef ballBodyDef - body definition for the ball \n
-   * b2FixtureDef ballFixtureDef - fixture definition for the ball \n
-   * b2Body* flipperleftbody, flipperrightbody - body objects for the flippers \n
-   * b2Body* flipperrotbody1, flipperrotbody2 - body objects for the parts making the rotating flipper \n
-   * 
-   * -<b> Outer Box </b>\n
-   * b2Body* staticBody - body object for the outer bounding box \n
-   * b2BodyDef myBodyDef - body definition for the box \n
-   * b2Vec2 vs[5] - vertices of the box \n
-   * b2ChainShape boxShape - chain joining the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the outer box \n
-   *
-   * -<b> Right Launcher lane</b> \n
-   * b2Body* staticBody - body object for the lane \n
-   * b2BodyDef myBodyDef - body definition for the lane \n
-   * b2Vec2 vs[47] - vertices used to create the lane \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the lane \n
-   *
-   * -<b> Left launcher support </b>\n
-   * b2Body* staticBody - body object for the support \n
-   * b2BodyDef myBodyDef - body definition for the support \n
-   * b2Vec2 vs[4] - vertices used to create the support \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the launcher support \n
-   *
-   * -<b> Left Launcher lane </b>\n
-   * b2Body* staticBody - body object for the lane \n
-   * b2BodyDef myBodyDef - body definition for the lane \n
-   * b2Vec2 vs[20] - vertices used to create the lane \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the lane \n
-   *
-   * -<b> Right flipper bat support</b> \n
-   * b2Body* staticBody - body object for the bat support \n
-   * b2BodyDef myBodyDef - body definition for the bat support \n
-   * b2Vec2 vs[8] - vertices used to create the bat support \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the bat support \n
-   *
-   * -<b> Right and Left flipper bats </b>\n
-   * b2Body* body2 - body object for the invisible support for both the bats \n
-   * b2Body *flipperRightBody, *flipperLeftBody - flippers controlled using keyboard \n
-   * b2BodyDef flipper - body definition for both the flipper bats \n
-   * b2PolygonShape shape - shape definition for the bats \n
-   * b2FixtureDef *fd - fixture definition for the flippers \n
-   * b2RevoluteJointDef jointDef - revolute joint between body2 and flipper \n
-   *
-   * -<b> Left rotaters' wall </b>\n
-   * b2Body* staticBody - body object for the wall \n
-   * b2BodyDef myBodyDef - body definition for the wall \n
-   * b2Vec2 vs[17] - vertices used to create the wall \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the wall \n
-   *
-   * -<b> Left bumpers </b>\n
-   * b2Body* staticBody - body object for a bumper  \n
-   * b2CircleShape circleShape1, circleShape2 -  shape definitions for inner and outer circles of the bumper \n
-   * b2BodyDef myBodydef - body definition of the bumper \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the bumper \n
-   * 
-   * -<b> Rotaters on the left </b>\n
-   * b2Body *body, *body2 - body objects for the two bodies constituting the rotater  \n
-   * b2BodyDef bd, bd2 - body definitions of the rotater \n
-   * b2PolygonShape shape, shape2 - shape definitions for the two bodies \n
-   * b2FixtureDef fd, fd2 - fixture definitions for the two bodies \n
-   *
-   * -<b> Obstacles </b>\n
-   * b2Body* staticBody - body object for the obstacles \n
-   * b2BodyDef myBodyDef - body definition for the obstacles \n
-   * b2Vec2 vs[] - vertices used to create the obstacles \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the obstacles \n
-   *
-   * -<b> Rectangles serving as lanes </b>\n
-   * (There are 3 rectangles like these on the top) \n
-   * b2Body* staticBody - body object for rectangles \n
-   * b2BodyDef myBodyDef - body definition for rectangles \n
-   * b2PolygonShape boxShape - shape definition for rectangles \n
-   * b2FixtureDef boxFixtureDef - fixture definition, shape and density are set \n
-   *
-   * -<b> Sling Shot left and right  </b>\n
-   * (each consists of two parts - Triangular chain and rectangular cover) \n
-   * -<b> Triangular Chain </b>\n
-   * b2Body* staticBody - body object for the triangular part \n
-   * b2BodyDef myBodyDef - body definition for the triangular part \n
-   * b2Vec2 vs[] - vertices used to create the triangular part \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the triangular part \n
-   * -<b> Rectangular Cover </b>\n
-   * b2Body* staticBody - body object for the cover \n
-   * b2BodyDef myBodyDef1 - body definition for the cover \n
-   * b2Vec2 vs[] - vertices used to create the cover \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the cover \n
-   *
-   * -<b> Flipper Wheel </b>\n
-   * b2Body *body, *body2 - body objects for the two bodies constituting the wheel  \n
-   * b2Body *flipperrotbody1, *flipperrotbody2 - wheel controlled using keyboard \n
-   * b2BodyDef bd, bd2 - body definitions of the wheel \n
-   * b2PolygonShape shape, shape2 - shape definitions for the two bodies \n
-   * b2FixtureDef fd, fd2 - fixture definitions for the two bodies \n
-   *
-   * -<b> Launcher </b>\n
-   * (Two launchers on the bottom right)
-   * b2Body* launcher, launcherSupport - body objects for the creating a spring joint \n
-   * b2BodyDef bd, bd2 - body definitions of the spring \n
-   * b2PolygonShape shape, shape2 - shape definition for the spring \n
-   * b2FixtureDef *fd, *fd2 - fixture definitions of the spring \n
-   * b2PrismaticJointDef launcherJoint - prismatic joint between launcher and launcherSupport \n
-   *
-   * -<b> Rectangular Bumpers </b>\n
-   * (there are 4 bumpers each consisting of 4 small rectangles) \n
-   * b2Body* staticBody - body object for the each rectangle \n
-   * b2BodyDef myBodyDef - body definition for the bumpers \n
-   * b2PolygonShape boxShape - shape definition for each rectangle \n
-   * b2FixtureDef boxFixtureDef - fixture definition of each rectangle \n
-   *
-   * -<b> Ball </b> \n
-   * b2Body* ballBody - body object for the ball \n
-   * b2BodyDef ballBodyDef - body definition for the ball \n
-   * b2CircleShape ball - shape definition for the ball \n
-   * b2FixtureDef ballFixtureDef - fixture definition of the ball \n
-   *
-   ***********************************************/ 
-/*  The is the constructor 
-    This is the documentation block for the constructor.
- */ 
     dominos_t::dominos_t()
     {
         //Ground
@@ -426,6 +304,7 @@ namespace cs251
             flipper.position.Set(-6.0f, -2.25f);
             flipper.type = b2_dynamicBody;
             flipper.allowSleep = false;
+            //b2Body*
             flipperleftbody = m_world->CreateBody(&flipper);
             b2FixtureDef *fd = new b2FixtureDef;
             fd->density = 1.f;
@@ -461,6 +340,7 @@ namespace cs251
             flipper.position.Set(3.75f, -2.25f);
             flipper.type = b2_dynamicBody;
             flipper.allowSleep = false;
+            //b2Body*
             flipperrightbody = m_world->CreateBody(&flipper);
             b2FixtureDef *fd = new b2FixtureDef;
             fd->density = 1.f;
@@ -686,7 +566,7 @@ namespace cs251
             shape.SetAsBox(1.3f, 0.1f);
           
             b2BodyDef bd;
-            bd.position.Set(-18.0f, 15.0f);
+            bd.position.Set(-17.0f, 15.0f);
             bd.type = b2_kinematicBody;
             b2Body* body = m_world->CreateBody(&bd);
             b2FixtureDef *fd = new b2FixtureDef;
@@ -700,7 +580,7 @@ namespace cs251
             b2PolygonShape shape2;
             shape2.SetAsBox(0.1f, 1.3f);
             b2BodyDef bd2;
-            bd2.position.Set(-18.0f, 15.0f);
+            bd2.position.Set(-17.0f, 15.0f);
             bd2.type = b2_kinematicBody;
             b2Body* body2 = m_world->CreateBody(&bd2);  //here we made a bd2 mistake
             b2FixtureDef *fd2 = new b2FixtureDef;
@@ -787,7 +667,7 @@ namespace cs251
         {
             b2BodyDef myBodyDef;
             myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-2   , 30); //slightly lower position
+            myBodyDef.position.Set(-2 , 30); //slightly lower position
             {
             b2CircleShape circleShape1;
             circleShape1.m_p.Set(0, 0); //position, relative to body position
@@ -915,7 +795,7 @@ namespace cs251
         {
             b2BodyDef myBodyDef;
             myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
+            myBodyDef.position.Set(1.5, 10); //slightly lower position
             {
                 int times = 22;//set the initial value
                 b2Vec2 vs[times];
@@ -1267,10 +1147,10 @@ namespace cs251
         // Flipper wheel 
         {
             b2PolygonShape shape;
-            shape.SetAsBox(1.3f, 0.1f);
+            shape.SetAsBox(2.0f, 0.1f);
           
             b2BodyDef bd;
-            bd.position.Set(0.0f, 20.0f);
+            bd.position.Set(0.0f, 14.0f);
             bd.type = b2_kinematicBody;
             //b2Body* 
             flipperrotbody1 = m_world->CreateBody(&bd);
@@ -1279,13 +1159,13 @@ namespace cs251
             fd->shape = new b2PolygonShape;
             fd->shape = &shape;
             flipperrotbody1->CreateFixture(fd);
-            flipperrotbody1->SetAngularVelocity( -5 );
+            flipperrotbody1->SetAngularVelocity( -3 );
 
 
             b2PolygonShape shape2;
-            shape2.SetAsBox(0.1f, 1.3f);
+            shape2.SetAsBox(0.1f, 2.0f);
             b2BodyDef bd2;
-            bd2.position.Set(0.0f, 20.0f);
+            bd2.position.Set(0.0f, 14.0f);
             bd2.type = b2_kinematicBody;
             //b2Body* 
             flipperrotbody2 = m_world->CreateBody(&bd2);  //here we made a bd2 mistake
@@ -1294,7 +1174,7 @@ namespace cs251
             fd2->shape = new b2PolygonShape;
             fd2->shape = &shape2;
             flipperrotbody2->CreateFixture(fd2);
-            flipperrotbody2->SetAngularVelocity( -5 );
+            flipperrotbody2->SetAngularVelocity( -3 );
 
             b2RevoluteJointDef jointDef;
             jointDef.bodyA = flipperrotbody1;
@@ -1639,32 +1519,32 @@ namespace cs251
             }
         }
 
+        
      //ball
-		{
-		    b2BodyDef ballBodyDef;
-		    ballBodyDef.allowSleep = false;
-		    //ballBodyDef.type = b2_staticBody; //this will be a static body
-		    ballBodyDef.type = b2_dynamicBody; //this will be a static body
-		    ballBodyDef.position.Set(15.5, 4); //slightly lower position
-		    {
-		    b2CircleShape ball;
-		    ball.m_p.Set(0, 0); //position, relative to body position
-		    ball.m_radius = 0.5; //radius
-		    
-		    b2FixtureDef ballFixtureDef;
-		    ballFixtureDef.shape = &ball;
-		    ballFixtureDef.density = 0.05;
+    {
+        b2BodyDef ballBodyDef;
+        ballBodyDef.allowSleep = false;
+        ballBodyDef.type = b2_dynamicBody;
+        ballBodyDef.position.Set(15.5, 4);
+        //ballBodyDef.position.Set(-19, 15);
+        {
+        b2CircleShape ball;
+        ball.m_p.Set(0, 0);
+        ball.m_radius = 0.5;
+        
+        b2FixtureDef ballFixtureDef;
+        ballFixtureDef.shape = &ball;
+        ballFixtureDef.density = 0.05;
 
-		    //b2Body* 
-		    ballBody = m_world->CreateBody(&ballBodyDef); //add body to world
-		    ballBody->CreateFixture(&ballFixtureDef); //add fixture to body
-		    //ballBody->ApplyLinearImpulse( b2Vec2(0,60), ballBody->GetWorldCenter(), 1 );
-		    //m_world->DestroyBody(ballBody);
-		    }
-		}
-
+        //b2Body* 
+        ballBody = m_world->CreateBody(&ballBodyDef);
+        ballBody->CreateFixture(&ballFixtureDef);
+        }
+    }
+        
     }
 
   sim_t *sim = new sim_t("Dominos", dominos_t::create);
 }
 
+// Need to check the ball game when it enters the rotators part after setting restitution.
