@@ -39,10 +39,117 @@ using namespace std;
 
 namespace cs251
 {
-  /**  The is the constructor 
-   * This is the documentation block for the constructor.
-   */ 
-          
+    /********************************************//**
+   * <b>This is the documentation block for the constructor</b> \n
+   * <b> The pendulum that knocks the dominos off </b> <br>
+   * - b2Body* b2 - the small vertical pillar to which the bob is connected \n
+   * - shape - definition of shape of the pillar \n
+   * - b2BodyDef bd - body definition of the pillar \n
+   * - b2Body* b4 - bob of the pendulum \n
+   * - b2PolygonShape shape - definition of shape of the bob \n
+   * - b2BodyDef bd - body definition of the bob \n
+   * - b2RevoluteJointDef jd - the joint definition that connects the bob and the pillar to form the pendulum
+   * - b2Vec2 anchor - specifies the anchor point for the pendulum \n
+   *
+   * <b> Top horizontal shelf </b> <br>
+   * (Upon which the Dominos lie)
+   * - b2PolygonShape shape - definition of shape of the shelf \n
+   * - b2BodyDef bd - body definition of the shelf \n
+   *
+   * <b> Dominos </b> <br>
+   * (lie on the top horizontal shelf)
+   * - b2PolygonShape shape - definition of shape of dominos \n
+   * - b2FixtureDef fd - fixture definition of dominos \n
+   * - b2BodyDef bd - body definition of each domino \n
+   *
+   * <b> Another Horizontal Shelf </b> <br>
+   * (Upon which the train of spheres lie)
+   * - b2PolygonShape shape - definition of shape of the shelf \n
+   * - b2BodyDef bd - body definition of the shelf \n
+   *
+   * <b> Train of spheres </b> <br>
+   * (lie on the second horizontal shelf)
+   * - b2Body* spherebody - the train of spheres on the shelf \n
+   * - b2CircleShape circle - definition of shape of the spheres \n
+   * - b2FixtureDef ballfd - fixture definition of the spheres, properties like density friction and restitution are defined \n
+   * - b2BodyDef ballbd - body definition of each sphere \n
+   *
+   * <b> The pulley system </b> <br>
+   * - b2BodyDef *bd - Body definition of the horizontal rods \n
+   *
+   * - Open Box \n
+   * &nbsp;&nbsp;&nbsp;- b2Body* box1 - body object for the open box on the right of the  pulley system \n
+   * &nbsp;&nbsp;&nbsp;- b2FixtureDef *fd1, *fd2, *fd3 - fixture definitions of the three rods constituting the open box \n
+   *
+   * - The bar \n
+   * &nbsp;&nbsp;&nbsp;- b2Body* box2 - body object for the bar on right side of the pulley system \n
+   * 
+   * - Pulley joint \n
+   * &nbsp;&nbsp;&nbsp;- b2PulleyJointDef* myjoint - Pulley joint connecting the open box on the left and bar on the right \n
+   * &nbsp;&nbsp;&nbsp;- b2Vec2 worldAnchorOnBody1, worldAnchorOnBody2, worldAnchorOnBody3 - anchor points for the pulley joint \n
+   *
+   * <b> Revolving Horiontal platform </b> <br>
+   * (Upon which the heavy sphere lies) \n
+   * - b2Body* body - body object corresponding to horizontal platform \n 
+   * - b2PolygonShape shape - definition of shape of the platform \n
+   * - b2BodyDef bd - defintion of body of platform \n
+   * - b2FixtureDef *fd - fixture definition of the platform, density and shape are set \n
+   * - b2Body* body2 - body object corresponding to pivot for the platform \n
+   * - b2PolygonShape shape2 - shape definition of the pivot \n
+   * - b2BodyDef bd2 - definition of body of pivot \n
+   * - b2RevoluteJointDef jointDef - revolute joint between the platform and pivot \n
+   * 
+   * <b> Heavy sphere on the platform </b> <br>
+   * - b2Body* sbody - body object for the Heavy sphere
+   * - b2CircleShape circle - shape definition of the sphere \n
+   * - b2BodyDef ballbd - body definition of the sphere \n
+   * - b2FixtureDef ballfd - fixture definition, friction density and restitution are set \n
+   * 
+   * <b>The see-saw system at the bottom</b> <br>
+   * - The triangular wedge \n
+   * &nbsp;&nbsp;&nbsp;- b2Body* sbody - body object for the triangular wedge \n
+   * &nbsp;&nbsp;&nbsp;- b2PolygonShape poly - shape definition of the wedge \n
+   * &nbsp;&nbsp;&nbsp;- b2Vec2 vertices[3] - array containing the vertices of the triangle \n
+   * &nbsp;&nbsp;&nbsp;- b2BodyDef wedgebd - body definition of the wedge \n
+   * &nbsp;&nbsp;&nbsp;- b2FixtureDef wedgefd - fixture definition, friction density and restitution are set \n
+   *
+   * - The plank on top of the wedge \n
+   *&nbsp;&nbsp;&nbsp; - b2Body* body - body object for the plank \n
+   *&nbsp;&nbsp;&nbsp; - b2PolygonShape shape - shape defintion of the plank \n
+   *&nbsp;&nbsp;&nbsp; - b2BodyDef bd2 - body definition of the plank \n
+   *&nbsp;&nbsp;&nbsp; - b2FixtureDef *fd2 - fixture definition, density and shape are set \n
+   *&nbsp;&nbsp;&nbsp; - b2RevoluteJointDef jd - joint between plank and triangular wedge \n
+   *&nbsp;&nbsp;&nbsp; - b2Vec2 anchor - anchor points between wedge and plank  \n
+   *
+   * - The light box on the right side of the see-saw \n
+   *&nbsp;&nbsp;&nbsp; - b2Body* body3 - body object for the box \n
+   *&nbsp;&nbsp;&nbsp; - b2PolygonShape shape2 - shape definition of the box \n
+   *&nbsp;&nbsp;&nbsp; - b2BodyDef bd3 - body definition of the box \n
+   *&nbsp;&nbsp;&nbsp; - b2FixtureDef *fd3 - fixture definition, density and shape are set \n
+   *
+   * <b> Rotating platform #2 </b> <br>
+   * (Upon which the heavy sphere lies) \n
+   * - b2Body* body - body object corresponding to horizontal platform \n 
+   * - b2PolygonShape shape - definition of shape of the platform \n
+   * - b2BodyDef bd - defintion of body of platform \n
+   * - b2FixtureDef *fd - fixture definition of the platform, density and shape are set \n
+   * - b2Body* body2 - body object corresponding to pivot for the platform \n
+   * - b2PolygonShape shape2 - shape definition of the pivot \n
+   * - b2BodyDef bd2 - definition of body of pivot \n
+   * - b2RevoluteJointDef jointDef - revolute joint between the platform and pivot \n
+   *
+   * <b> Sphere beside the light box </b> <br>
+   * - b2Body* sbody - body object for the Heavy sphere
+   * - b2CircleShape circle - shape definition of the sphere \n
+   * - b2BodyDef ballbd - body definition of the sphere \n
+   * - b2FixtureDef ballfd - fixture definition, friction density and restitution are set \n
+   *
+   * <b> Dominos in the bottom </b> <br>
+   * (lie on ground)
+   * - b2PolygonShape shape - definition of shape of dominos \n
+   * - b2FixtureDef fd - fixture definition of dominos \n
+   * - b2BodyDef bd - body definition of each domino \n
+   ***********************************************/         
 
     b2PrismaticJointDef launcherJoint;
     b2PrismaticJointDef launcherJoint2;
@@ -60,10 +167,6 @@ namespace cs251
     b2FixtureDef ballFixtureDef;
     dominos_t::dominos_t()
     {
-        //Ground
-        /*! \var b1 
-         * \brief pointer to the body ground 
-         */
          //Outer Box
         {
             b2BodyDef myBodyDef;
@@ -432,7 +535,7 @@ namespace cs251
                 step = 1/(float)5;
                 t = 0;
 
-                v1.Set(-14,8);
+                v1.Set(-14,7.75);
                 v2.Set(-13,7);
                 v3.Set(-12,7);
                 v4.Set(-11,6);
@@ -1184,7 +1287,7 @@ namespace cs251
             shape.SetAsBox(2.0f, 0.1f);
           
             b2BodyDef bd;
-            bd.position.Set(0.0f, 14.0f);
+            bd.position.Set(0.5f, 14.0f);
             bd.type = b2_kinematicBody;
             //b2Body* 
             flipperrotbody1 = m_world->CreateBody(&bd);
@@ -1199,7 +1302,7 @@ namespace cs251
             b2PolygonShape shape2;
             shape2.SetAsBox(0.1f, 2.0f);
             b2BodyDef bd2;
-            bd2.position.Set(0.0f, 14.0f);
+            bd2.position.Set(0.5f, 14.0f);
             bd2.type = b2_kinematicBody;
             //b2Body* 
             flipperrotbody2 = m_world->CreateBody(&bd2);  //here we made a bd2 mistake
@@ -1575,7 +1678,7 @@ namespace cs251
             b2BodyDef ballBodyDef;
             ballBodyDef.allowSleep = false;
             ballBodyDef.type = b2_dynamicBody;
-            ballBodyDef.position.Set(16, 4);
+            ballBodyDef.position.Set(19.5, 4);
             //ballBodyDef.position.Set(-19.5, 20);
             {
             b2CircleShape ball;
