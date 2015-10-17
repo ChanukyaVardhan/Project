@@ -121,21 +121,21 @@ namespace cs251
       (test)->launch();
       break;
 
-    case 's':
+    /*case 's':
       (test)->delaunch();
-      break;
+      break;*/
 
     case '8':
       (test)->launch2();
       break;
 
-    case '2':
+    /*case '2':
       (test)->delaunch2();
-      break;
+      break;*/
 
-    case 'n':
+    /*case 'n':
       (test)->ball();
-      break;
+      break;*/
 
     /*case 'm':
       (test)->createball();
@@ -161,9 +161,9 @@ namespace cs251
       //! The default case. Why is this needed?
     default:
       if (test)
-	{
-	  test->keyboard(key);
-	}
+  {
+    test->keyboard(key);
+  }
     }
   }
   
@@ -217,7 +217,7 @@ namespace cs251
     
     if (test)
       {
-	test->keyboard_up(key);
+  test->keyboard_up(key);
       }
   }
   
@@ -226,38 +226,38 @@ namespace cs251
     //! Use the mouse to move things around - figure out how this works?
     if (button == GLUT_LEFT_BUTTON)
       {
-	int mod = glutGetModifiers();
-	b2Vec2 p = convert_screen_to_world(x, y);
-	if (state == GLUT_DOWN)
-	  {
-	    b2Vec2 p = convert_screen_to_world(x, y);
-	    if (mod == GLUT_ACTIVE_SHIFT)
-	      {
-		test->shift_mouse_down(p);
-	      }
-	    else
-	      {
-		test->mouse_down(p);
-	      }
-	  }
-	
-	if (state == GLUT_UP)
-	  {
-	    test->mouse_up(p);
-	  }
+  int mod = glutGetModifiers();
+  b2Vec2 p = convert_screen_to_world(x, y);
+  if (state == GLUT_DOWN)
+    {
+      b2Vec2 p = convert_screen_to_world(x, y);
+      if (mod == GLUT_ACTIVE_SHIFT)
+        {
+    test->shift_mouse_down(p);
+        }
+      else
+        {
+    test->mouse_down(p);
+        }
+    }
+  
+  if (state == GLUT_UP)
+    {
+      test->mouse_up(p);
+    }
       }
     else if (button == GLUT_RIGHT_BUTTON)
       {
-	if (state == GLUT_DOWN)
-	  {	
-	    lastp = convert_screen_to_world(x, y);
-	    r_mouse_down = true;
-	  }
-	
-	if (state == GLUT_UP)
-	  {
-	  r_mouse_down = false;
-	  }
+  if (state == GLUT_DOWN)
+    { 
+      lastp = convert_screen_to_world(x, y);
+      r_mouse_down = true;
+    }
+  
+  if (state == GLUT_UP)
+    {
+    r_mouse_down = false;
+    }
       }
   }
   
@@ -269,11 +269,11 @@ namespace cs251
     
     if (r_mouse_down)
       {
-	b2Vec2 diff = p - lastp;
-	settings.view_center.x -= diff.x;
-	settings.view_center.y -= diff.y;
-	resize_cb(width, height);
-	lastp = convert_screen_to_world(x, y);
+  b2Vec2 diff = p - lastp;
+  settings.view_center.x -= diff.x;
+  settings.view_center.y -= diff.y;
+  resize_cb(width, height);
+  lastp = convert_screen_to_world(x, y);
       }
   }
   
@@ -299,7 +299,7 @@ namespace cs251
     
     if (old_center.x != settings.view_center.x || old_center.y != settings.view_center.y)
       {
-	resize_cb(width, height);
+  resize_cb(width, height);
       }
     
     test->draw_title(5, 15, entry->name);
@@ -308,12 +308,12 @@ namespace cs251
     
     if (test_selection != test_index)
       {
-	test_index = test_selection;
-	delete test;
-	entry = cs251::sim;
-	test = entry->create_fcn();
-	view_zoom = 1.0f;
-	settings.view_center.Set(0.0f, 20.0f);
+  test_index = test_selection;
+  delete test;
+  entry = cs251::sim;
+  test = entry->create_fcn();
+  view_zoom = 1.0f;
+  settings.view_center.Set(0.0f, 20.0f);
       resize_cb(width, height);
       }
   }

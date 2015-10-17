@@ -31,7 +31,7 @@
 #include <Box2D/Box2D.h>
 #include <cstdlib>
 
-#define	RAND_LIMIT 32767
+#define RAND_LIMIT 32767
 
 namespace cs251
 {
@@ -41,10 +41,10 @@ namespace cs251
   extern b2Body* ballBody;
   extern b2Body* flipperleftbody;
   extern b2Body* flipperrightbody;
-  extern b2Body* flipperwheelrightbody;
-  extern b2Body* flipperwheelupbody;
-  extern b2Body* flipperwheellefttbody;
-  extern b2Body* flipperwheeldownbody;
+  //extern b2Body* flipperwheelrightbody;
+  //extern b2Body* flipperwheelupbody;
+  //extern b2Body* flipperwheellefttbody;
+  //extern b2Body* flipperwheeldownbody;
   //extern b2RevoluteJointDef wheeljointDef1;
   extern b2BodyDef ballBodyDef;
   extern b2FixtureDef ballFixtureDef;
@@ -136,10 +136,10 @@ namespace cs251
     
     base_sim_t();
     void launch();
-    void delaunch();
+    //void delaunch();
     void launch2();
-    void delaunch2();
-    void ball();
+    //void delaunch2();
+    //void ball();
     void flipperleft();
     void flipperright();
     void flipperwheelright();

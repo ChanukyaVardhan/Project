@@ -49,65 +49,24 @@ base_sim_t::base_sim_t()
 
 void base_sim_t::launch()
         {
-          /*          
-          b2BodyDef bodyDef;
-          bodyDef.type = b2_dynamicBody;
-          b2FixtureDef fixtureDef;
-          fixtureDef.density = 1;
-          
-          //two boxes
-          b2PolygonShape squareShapeA;
-          squareShapeA.SetAsBox(5,3);
-          b2PolygonShape squareShapeB;
-          squareShapeB.SetAsBox(1,4);
-          
-          //large box a little to the left
-          bodyDef.position.Set(-20, 10);
-          fixtureDef.shape = &squareShapeA;
-          b2Body* m_bodyA = m_world->CreateBody(&bodyDef);
-          m_bodyA = m_world->CreateBody( &bodyDef );
-          m_bodyA->CreateFixture( &fixtureDef );
-          
-          //smaller box a little to the right
-          bodyDef.position.Set( -4, 10);
-          fixtureDef.shape = &squareShapeB;
-          b2Body* m_bodyB = m_world->CreateBody(&bodyDef);
-          m_bodyB = m_world->CreateBody( &bodyDef );
-          m_bodyB->CreateFixture( &fixtureDef );
-
-          b2PrismaticJointDef prismaticJointDef;
-          prismaticJointDef.bodyA = m_bodyA;
-          prismaticJointDef.bodyB = m_bodyB;
-          prismaticJointDef.localAnchorA.Set( 6,-3);//a little outside the bottom right corner
-          prismaticJointDef.localAnchorB.Set(-1,-4);//bottom left corner
-          prismaticJointDef.enableLimit = true;
-          prismaticJointDef.lowerTranslation = 0;
-          prismaticJointDef.upperTranslation = 10;
-          prismaticJointDef.collideConnected = true;
-
-          m_world->CreateJoint( &prismaticJointDef );*/
-        {
-          extern b2PrismaticJointDef launcherJoint;
-          //launcherJoint.referenceAngle = 0.0174532925*90;
-          //launcherJoint.localAxisA.Set(0,1);
-          launcherJoint.enableLimit = true;
-          launcherJoint.lowerTranslation = 0;
-          launcherJoint.upperTranslation = 2;
-          launcherJoint.enableMotor = true;
-          launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
-          launcherJoint.motorSpeed = 50;//5 units per second in positive axis direction
-          
-          m_world->CreateJoint(&launcherJoint);
-          //launcherJoint.motorSpeed = -5;
-          //m_world->CreateJoint(&launcherJoint);
-          launcherJoint.enableMotor = false;          
+          {
+            extern b2PrismaticJointDef launcherJoint;
+            launcherJoint.enableLimit = true;
+            launcherJoint.lowerTranslation = 0;
+            launcherJoint.upperTranslation = 2;
+            launcherJoint.enableMotor = true;
+            launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
+            launcherJoint.motorSpeed = 32;//5 units per second in positive axis direction
+            
+            m_world->CreateJoint(&launcherJoint);
+            launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
+            launcherJoint.motorSpeed = -32;//5 units per second in positive axis direction
+            m_world->CreateJoint(&launcherJoint);
+            launcherJoint.enableMotor = false;          
+          }
         }
 
-
-
-        }
-
-void base_sim_t::delaunch()
+/*void base_sim_t::delaunch()
 {
   {
           extern b2PrismaticJointDef launcherJoint;
@@ -125,7 +84,7 @@ void base_sim_t::delaunch()
           //m_world->CreateJoint(&launcherJoint);
           launcherJoint.enableMotor = false;
   }
-}
+}*/
 
 void base_sim_t::launch2()
         {
@@ -135,15 +94,18 @@ void base_sim_t::launch2()
             launcherJoint2.lowerTranslation = 0;
             launcherJoint2.upperTranslation = 0.7;
             launcherJoint2.enableMotor = true;
-            launcherJoint2.maxMotorForce = 5000;//this is a powerful machine after all...
+            launcherJoint2.maxMotorForce = 500000;//this is a powerful machine after all...
             launcherJoint2.motorSpeed = 32;//5 units per second in positive axis direction
             
+            m_world->CreateJoint(&launcherJoint2);
+            launcherJoint2.maxMotorForce = 500000;//this is a powerful machine after all...
+            launcherJoint2.motorSpeed = -32;//5 units per second in positive axis direction
             m_world->CreateJoint(&launcherJoint2);
             launcherJoint2.enableMotor = false;          
           }
         }
 
-void base_sim_t::delaunch2()
+/*void base_sim_t::delaunch2()
 {
   {
           extern b2PrismaticJointDef launcherJoint2;
@@ -157,9 +119,9 @@ void base_sim_t::delaunch2()
           m_world->CreateJoint(&launcherJoint2);
           launcherJoint2.enableMotor = false;
   }
-}
+}*/
 
-void base_sim_t::ball()
+/*void base_sim_t::ball()
 {
     //extern b2BodyDef ballBodyDef;
     //extern b2FixtureDef ballFixtureDef;
@@ -169,7 +131,7 @@ void base_sim_t::ball()
     //ballBody = m_world->CreateBody(&ballBodyDef); //add body to world
     //ballBody->CreateFixture(&ballFixtureDef); //add fixture to body
     //delete ballBody;
-}
+}*/
 
 /*void base_sim_t::createball()
 {

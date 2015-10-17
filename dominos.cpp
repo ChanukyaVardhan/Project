@@ -27,9 +27,9 @@
 #include "render.hpp"
 
 #ifdef __APPLE__
-  #include <GLUT/glut.h>
+    #include <GLUT/glut.h>
 #else
-  #include "GL/freeglut.h"
+    #include "GL/freeglut.h"
 #endif
 
 #include <cstring>
@@ -49,10 +49,10 @@ namespace cs251
     b2Body* ballBody;
     b2Body* flipperleftbody;
     b2Body* flipperrightbody;
-    b2Body* flipperwheelrightbody;
-    b2Body* flipperwheelupbody;
-    b2Body* flipperwheelleftbody;
-    b2Body* flipperwheeldownbody;
+    //b2Body* flipperwheelrightbody;
+    //b2Body* flipperwheelupbody;
+    //b2Body* flipperwheelleftbody;
+    //b2Body* flipperwheeldownbody;
     b2Body* flipperrotbody1;
     b2Body* flipperrotbody2;
     //b2RevoluteJointDef wheeljointDef1;
@@ -96,7 +96,7 @@ namespace cs251
             myBodyDef.position.Set(0, 10); //slightly lower position
 
             {
-                int times = 47;//set the initial value
+                int times = 58;//set the initial value
                 b2Vec2 vs[times];
 
                 float step = 1/(float)19;
@@ -170,14 +170,38 @@ namespace cs251
                 vs[i] = pa+pb+pc+pd;
                 t+=step;
                 }
+                //this is the point
+                //vs[40].Set(-10,-5);
 
-                vs[40].Set(-20,-5);
-                vs[41].Set(-6.5,-10);
-                vs[42].Set(-6.25,-10.25);
-                vs[43].Set(-6.5,-10.5);
-                vs[44].Set(-20,-6);
-                vs[45].Set(-6.5,-10.5);
-                vs[46].Set(-6.5,-14);
+                step = 1/(float)10;
+                t = 0;
+
+                v1.Set(-20,2);
+                v2.Set(-18.5,1);
+                v3.Set(-18.5,1);
+                v4.Set(-20,0);
+
+                for(int i = 40  ;i < 50;i++)
+                {
+                b2Vec2 pa = v1;
+                pa *= ( (1-t)*(1-t)*(1-t) );
+                b2Vec2 pb = v2;
+                pb *= ( 3*t*(1-t)*(1-t) );
+                b2Vec2 pc = v3;
+                pc *= ( 3*t*t*(1-t) );
+                b2Vec2 pd = v4;
+                pd *= ( t*t*t );
+                vs[i] = pa+pb+pc+pd;
+                t+=step;
+                }
+                vs[50].Set(-20,0);
+                vs[51].Set(-20,-5);
+                vs[52].Set(-6.5,-10);
+                vs[53].Set(-6.25,-10.25);
+                vs[54].Set(-6.5,-10.5);
+                vs[55].Set(-20,-6);
+                vs[56].Set(-6.5,-10.5);
+                vs[57].Set(-6.5,-14);
 
                 b2ChainShape boxShape;
                 boxShape.CreateChain(vs, times);
@@ -185,6 +209,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 0.1f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -464,7 +489,7 @@ namespace cs251
             }
         }
 
-        // Circle 1 in left side near rotators
+        /*// Circle 1 in left side near rotators
         {
             b2BodyDef myBodyDef;
             myBodyDef.type = b2_staticBody; //this will be a static body
@@ -477,6 +502,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &circleShape1;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -494,7 +520,7 @@ namespace cs251
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
             }
-        }
+        }*/
 
         // Circle 2 in left side near rotators
         {
@@ -509,6 +535,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &circleShape1;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -541,6 +568,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &circleShape1;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -574,7 +602,7 @@ namespace cs251
             fd->shape = new b2PolygonShape;
             fd->shape = &shape;
             body->CreateFixture(fd);
-            body->SetAngularVelocity( -5 );
+            body->SetAngularVelocity( 5 );
 
 
             b2PolygonShape shape2;
@@ -588,7 +616,7 @@ namespace cs251
             fd2->shape = new b2PolygonShape;
             fd2->shape = &shape2;
             body2->CreateFixture(fd2);
-            body2->SetAngularVelocity( -5 );
+            body2->SetAngularVelocity( 5 );
 
             b2RevoluteJointDef jointDef;
             jointDef.bodyA = body;
@@ -613,7 +641,7 @@ namespace cs251
             fd->shape = new b2PolygonShape;
             fd->shape = &shape;
             body->CreateFixture(fd);
-            body->SetAngularVelocity( 5 );
+            body->SetAngularVelocity( -5 );
 
 
             b2PolygonShape shape2;
@@ -627,7 +655,7 @@ namespace cs251
             fd2->shape = new b2PolygonShape;
             fd2->shape = &shape2;
             body2->CreateFixture(fd2);
-            body2->SetAngularVelocity( 5 );
+            body2->SetAngularVelocity( -5 );
 
             b2RevoluteJointDef jointDef;
             jointDef.bodyA = body;
@@ -676,6 +704,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &circleShape1;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -708,6 +737,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &circleShape1;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -740,6 +770,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &circleShape1;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -772,6 +803,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &circleShape1;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1090,6 +1122,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 1.2f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef1); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1138,6 +1171,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 1.2f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef1); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1241,7 +1275,7 @@ namespace cs251
             shape.SetAsBox(1.0f, 1.0f);
           
             b2BodyDef bd;
-            bd.position.Set(15.5f, 0.0f);
+            bd.position.Set(15.5f, -1.0f);
             bd.type = b2_dynamicBody;
             bd.allowSleep = false;
             b2Body* launcher;
@@ -1294,6 +1328,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1305,6 +1340,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1316,6 +1352,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1327,6 +1364,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1346,6 +1384,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1357,6 +1396,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1368,6 +1408,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1379,6 +1420,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1398,6 +1440,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1409,6 +1452,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1420,6 +1464,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1431,6 +1476,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1450,6 +1496,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1461,6 +1508,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1472,6 +1520,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1483,6 +1532,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 1.0f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1520,31 +1570,29 @@ namespace cs251
         }
 
         
-     //ball
-    {
-        b2BodyDef ballBodyDef;
-        ballBodyDef.allowSleep = false;
-        ballBodyDef.type = b2_dynamicBody;
-        ballBodyDef.position.Set(15.5, 4);
-        //ballBodyDef.position.Set(-19, 15);
+        //ball
         {
-        b2CircleShape ball;
-        ball.m_p.Set(0, 0);
-        ball.m_radius = 0.5;
-        
-        b2FixtureDef ballFixtureDef;
-        ballFixtureDef.shape = &ball;
-        ballFixtureDef.density = 0.05;
+            b2BodyDef ballBodyDef;
+            ballBodyDef.allowSleep = false;
+            ballBodyDef.type = b2_dynamicBody;
+            ballBodyDef.position.Set(16, 4);
+            //ballBodyDef.position.Set(-19.5, 20);
+            {
+            b2CircleShape ball;
+            ball.m_p.Set(0, 0);
+            ball.m_radius = 0.5;
+            
+            b2FixtureDef ballFixtureDef;
+            ballFixtureDef.shape = &ball;
+            ballFixtureDef.density = 0.05;
 
-        //b2Body* 
-        ballBody = m_world->CreateBody(&ballBodyDef);
-        ballBody->CreateFixture(&ballFixtureDef);
+            //b2Body* 
+            ballBody = m_world->CreateBody(&ballBodyDef);
+            ballBody->CreateFixture(&ballFixtureDef);
+            }
         }
-    }
         
     }
 
   sim_t *sim = new sim_t("Dominos", dominos_t::create);
 }
-
-// Need to check the ball game when it enters the rotators part after setting restitution.
