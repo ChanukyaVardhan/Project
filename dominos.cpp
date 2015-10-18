@@ -27,9 +27,9 @@
 #include "render.hpp"
 
 #ifdef __APPLE__
-    #include <GLUT/glut.h>
+  #include <GLUT/glut.h>
 #else
-    #include "GL/freeglut.h"
+  #include "GL/freeglut.h"
 #endif
 
 #include <cstring>
@@ -39,134 +39,151 @@ using namespace std;
 
 namespace cs251
 {
-    /********************************************//**
-   * <b>This is the documentation block for the constructor</b> \n
-   * <b> The pendulum that knocks the dominos off </b> <br>
-   * - b2Body* b2 - the small vertical pillar to which the bob is connected \n
-   * - shape - definition of shape of the pillar \n
-   * - b2BodyDef bd - body definition of the pillar \n
-   * - b2Body* b4 - bob of the pendulum \n
-   * - b2PolygonShape shape - definition of shape of the bob \n
-   * - b2BodyDef bd - body definition of the bob \n
-   * - b2RevoluteJointDef jd - the joint definition that connects the bob and the pillar to form the pendulum
-   * - b2Vec2 anchor - specifies the anchor point for the pendulum \n
-   *
-   * <b> Top horizontal shelf </b> <br>
-   * (Upon which the Dominos lie)
-   * - b2PolygonShape shape - definition of shape of the shelf \n
-   * - b2BodyDef bd - body definition of the shelf \n
-   *
-   * <b> Dominos </b> <br>
-   * (lie on the top horizontal shelf)
-   * - b2PolygonShape shape - definition of shape of dominos \n
-   * - b2FixtureDef fd - fixture definition of dominos \n
-   * - b2BodyDef bd - body definition of each domino \n
-   *
-   * <b> Another Horizontal Shelf </b> <br>
-   * (Upon which the train of spheres lie)
-   * - b2PolygonShape shape - definition of shape of the shelf \n
-   * - b2BodyDef bd - body definition of the shelf \n
-   *
-   * <b> Train of spheres </b> <br>
-   * (lie on the second horizontal shelf)
-   * - b2Body* spherebody - the train of spheres on the shelf \n
-   * - b2CircleShape circle - definition of shape of the spheres \n
-   * - b2FixtureDef ballfd - fixture definition of the spheres, properties like density friction and restitution are defined \n
-   * - b2BodyDef ballbd - body definition of each sphere \n
-   *
-   * <b> The pulley system </b> <br>
-   * - b2BodyDef *bd - Body definition of the horizontal rods \n
-   *
-   * - Open Box \n
-   * &nbsp;&nbsp;&nbsp;- b2Body* box1 - body object for the open box on the right of the  pulley system \n
-   * &nbsp;&nbsp;&nbsp;- b2FixtureDef *fd1, *fd2, *fd3 - fixture definitions of the three rods constituting the open box \n
-   *
-   * - The bar \n
-   * &nbsp;&nbsp;&nbsp;- b2Body* box2 - body object for the bar on right side of the pulley system \n
-   * 
-   * - Pulley joint \n
-   * &nbsp;&nbsp;&nbsp;- b2PulleyJointDef* myjoint - Pulley joint connecting the open box on the left and bar on the right \n
-   * &nbsp;&nbsp;&nbsp;- b2Vec2 worldAnchorOnBody1, worldAnchorOnBody2, worldAnchorOnBody3 - anchor points for the pulley joint \n
-   *
-   * <b> Revolving Horiontal platform </b> <br>
-   * (Upon which the heavy sphere lies) \n
-   * - b2Body* body - body object corresponding to horizontal platform \n 
-   * - b2PolygonShape shape - definition of shape of the platform \n
-   * - b2BodyDef bd - defintion of body of platform \n
-   * - b2FixtureDef *fd - fixture definition of the platform, density and shape are set \n
-   * - b2Body* body2 - body object corresponding to pivot for the platform \n
-   * - b2PolygonShape shape2 - shape definition of the pivot \n
-   * - b2BodyDef bd2 - definition of body of pivot \n
-   * - b2RevoluteJointDef jointDef - revolute joint between the platform and pivot \n
-   * 
-   * <b> Heavy sphere on the platform </b> <br>
-   * - b2Body* sbody - body object for the Heavy sphere
-   * - b2CircleShape circle - shape definition of the sphere \n
-   * - b2BodyDef ballbd - body definition of the sphere \n
-   * - b2FixtureDef ballfd - fixture definition, friction density and restitution are set \n
-   * 
-   * <b>The see-saw system at the bottom</b> <br>
-   * - The triangular wedge \n
-   * &nbsp;&nbsp;&nbsp;- b2Body* sbody - body object for the triangular wedge \n
-   * &nbsp;&nbsp;&nbsp;- b2PolygonShape poly - shape definition of the wedge \n
-   * &nbsp;&nbsp;&nbsp;- b2Vec2 vertices[3] - array containing the vertices of the triangle \n
-   * &nbsp;&nbsp;&nbsp;- b2BodyDef wedgebd - body definition of the wedge \n
-   * &nbsp;&nbsp;&nbsp;- b2FixtureDef wedgefd - fixture definition, friction density and restitution are set \n
-   *
-   * - The plank on top of the wedge \n
-   *&nbsp;&nbsp;&nbsp; - b2Body* body - body object for the plank \n
-   *&nbsp;&nbsp;&nbsp; - b2PolygonShape shape - shape defintion of the plank \n
-   *&nbsp;&nbsp;&nbsp; - b2BodyDef bd2 - body definition of the plank \n
-   *&nbsp;&nbsp;&nbsp; - b2FixtureDef *fd2 - fixture definition, density and shape are set \n
-   *&nbsp;&nbsp;&nbsp; - b2RevoluteJointDef jd - joint between plank and triangular wedge \n
-   *&nbsp;&nbsp;&nbsp; - b2Vec2 anchor - anchor points between wedge and plank  \n
-   *
-   * - The light box on the right side of the see-saw \n
-   *&nbsp;&nbsp;&nbsp; - b2Body* body3 - body object for the box \n
-   *&nbsp;&nbsp;&nbsp; - b2PolygonShape shape2 - shape definition of the box \n
-   *&nbsp;&nbsp;&nbsp; - b2BodyDef bd3 - body definition of the box \n
-   *&nbsp;&nbsp;&nbsp; - b2FixtureDef *fd3 - fixture definition, density and shape are set \n
-   *
-   * <b> Rotating platform #2 </b> <br>
-   * (Upon which the heavy sphere lies) \n
-   * - b2Body* body - body object corresponding to horizontal platform \n 
-   * - b2PolygonShape shape - definition of shape of the platform \n
-   * - b2BodyDef bd - defintion of body of platform \n
-   * - b2FixtureDef *fd - fixture definition of the platform, density and shape are set \n
-   * - b2Body* body2 - body object corresponding to pivot for the platform \n
-   * - b2PolygonShape shape2 - shape definition of the pivot \n
-   * - b2BodyDef bd2 - definition of body of pivot \n
-   * - b2RevoluteJointDef jointDef - revolute joint between the platform and pivot \n
-   *
-   * <b> Sphere beside the light box </b> <br>
-   * - b2Body* sbody - body object for the Heavy sphere
-   * - b2CircleShape circle - shape definition of the sphere \n
-   * - b2BodyDef ballbd - body definition of the sphere \n
-   * - b2FixtureDef ballfd - fixture definition, friction density and restitution are set \n
-   *
-   * <b> Dominos in the bottom </b> <br>
-   * (lie on ground)
-   * - b2PolygonShape shape - definition of shape of dominos \n
-   * - b2FixtureDef fd - fixture definition of dominos \n
-   * - b2BodyDef bd - body definition of each domino \n
-   ***********************************************/         
-
     b2PrismaticJointDef launcherJoint;
     b2PrismaticJointDef launcherJoint2;
     b2Body* ballBody;
     b2Body* flipperleftbody;
     b2Body* flipperrightbody;
-    //b2Body* flipperwheelrightbody;
-    //b2Body* flipperwheelupbody;
-    //b2Body* flipperwheelleftbody;
-    //b2Body* flipperwheeldownbody;
     b2Body* flipperrotbody1;
     b2Body* flipperrotbody2;
-    //b2RevoluteJointDef wheeljointDef1;
     b2BodyDef ballBodyDef;
     b2FixtureDef ballFixtureDef;
+  /********************************************//**
+   * -<b> These are the extern variables used for keyboard controlling </b>\n
+   * b2PrismaticJointDef launcherJoint,launcherJoint2 - joints for both the launchers on the Right \n
+   * b2Body* ballBody - body object for the ball \n
+   * b2BodyDef ballBodyDef - body definition for the ball \n
+   * b2FixtureDef ballFixtureDef - fixture definition for the ball \n
+   * b2Body* flipperleftbody, flipperrightbody - body objects for the flippers \n
+   * b2Body* flipperrotbody1, flipperrotbody2 - body objects for the parts making the rotating flipper \n
+   * 
+   * -<b> Outer Box </b>\n
+   * b2Body* staticBody - body object for the outer bounding box \n
+   * b2BodyDef myBodyDef - body definition for the box \n
+   * b2Vec2 vs[5] - vertices of the box \n
+   * b2ChainShape boxShape - chain joining the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the outer box \n
+   *
+   * -<b> Right Launcher lane</b> \n
+   * b2Body* staticBody - body object for the lane \n
+   * b2BodyDef myBodyDef - body definition for the lane \n
+   * b2Vec2 vs[47] - vertices used to create the lane \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the lane \n
+   *
+   * -<b> Left launcher support </b>\n
+   * b2Body* staticBody - body object for the support \n
+   * b2BodyDef myBodyDef - body definition for the support \n
+   * b2Vec2 vs[4] - vertices used to create the support \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the launcher support \n
+   *
+   * -<b> Left Launcher lane </b>\n
+   * b2Body* staticBody - body object for the lane \n
+   * b2BodyDef myBodyDef - body definition for the lane \n
+   * b2Vec2 vs[20] - vertices used to create the lane \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the lane \n
+   *
+   * -<b> Right flipper bat support</b> \n
+   * b2Body* staticBody - body object for the bat support \n
+   * b2BodyDef myBodyDef - body definition for the bat support \n
+   * b2Vec2 vs[8] - vertices used to create the bat support \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the bat support \n
+   *
+   * -<b> Right and Left flipper bats </b>\n
+   * b2Body* body2 - body object for the invisible support for both the bats \n
+   * b2Body *flipperRightBody, *flipperLeftBody - flippers controlled using keyboard \n
+   * b2BodyDef flipper - body definition for both the flipper bats \n
+   * b2PolygonShape shape - shape definition for the bats \n
+   * b2FixtureDef *fd - fixture definition for the flippers \n
+   * b2RevoluteJointDef jointDef - revolute joint between body2 and flipper \n
+   *
+   * -<b> Left rotaters' wall </b>\n
+   * b2Body* staticBody - body object for the wall \n
+   * b2BodyDef myBodyDef - body definition for the wall \n
+   * b2Vec2 vs[17] - vertices used to create the wall \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the wall \n
+   *
+   * -<b> Left bumpers </b>\n
+   * b2Body* staticBody - body object for a bumper  \n
+   * b2CircleShape circleShape1, circleShape2 -  shape definitions for inner and outer circles of the bumper \n
+   * b2BodyDef myBodydef - body definition of the bumper \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the bumper \n
+   * 
+   * -<b> Rotaters on the left </b>\n
+   * b2Body *body, *body2 - body objects for the two bodies constituting the rotater  \n
+   * b2BodyDef bd, bd2 - body definitions of the rotater \n
+   * b2PolygonShape shape, shape2 - shape definitions for the two bodies \n
+   * b2FixtureDef fd, fd2 - fixture definitions for the two bodies \n
+   *
+   * -<b> Obstacles </b>\n
+   * b2Body* staticBody - body object for the obstacles \n
+   * b2BodyDef myBodyDef - body definition for the obstacles \n
+   * b2Vec2 vs[] - vertices used to create the obstacles \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the obstacles \n
+   *
+   * -<b> Rectangles serving as lanes </b>\n
+   * (There are 3 rectangles like these on the top) \n
+   * b2Body* staticBody - body object for rectangles \n
+   * b2BodyDef myBodyDef - body definition for rectangles \n
+   * b2PolygonShape boxShape - shape definition for rectangles \n
+   * b2FixtureDef boxFixtureDef - fixture definition, shape and density are set \n
+   *
+   * -<b> Sling Shot left and right  </b>\n
+   * (each consists of two parts - Triangular chain and rectangular cover) \n
+   * -<b> Triangular Chain </b>\n
+   * b2Body* staticBody - body object for the triangular part \n
+   * b2BodyDef myBodyDef - body definition for the triangular part \n
+   * b2Vec2 vs[] - vertices used to create the triangular part \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the triangular part \n
+   * -<b> Rectangular Cover </b>\n
+   * b2Body* staticBody - body object for the cover \n
+   * b2BodyDef myBodyDef1 - body definition for the cover \n
+   * b2Vec2 vs[] - vertices used to create the cover \n
+   * b2ChainShape boxShape - chain created using the above vertices \n
+   * b2FixtureDef boxFixtureDef - fixture definition of the cover \n
+   *
+   * -<b> Flipper Wheel </b>\n
+   * b2Body *body, *body2 - body objects for the two bodies constituting the wheel  \n
+   * b2Body *flipperrotbody1, *flipperrotbody2 - wheel controlled using keyboard \n
+   * b2BodyDef bd, bd2 - body definitions of the wheel \n
+   * b2PolygonShape shape, shape2 - shape definitions for the two bodies \n
+   * b2FixtureDef fd, fd2 - fixture definitions for the two bodies \n
+   *
+   * -<b> Launcher </b>\n
+   * (Two launchers on the bottom right)
+   * b2Body* launcher, launcherSupport - body objects for the creating a spring joint \n
+   * b2BodyDef bd, bd2 - body definitions of the spring \n
+   * b2PolygonShape shape, shape2 - shape definition for the spring \n
+   * b2FixtureDef *fd, *fd2 - fixture definitions of the spring \n
+   * b2PrismaticJointDef launcherJoint - prismatic joint between launcher and launcherSupport \n
+   *
+   * -<b> Rectangular Bumpers </b>\n
+   * (there are 4 bumpers each consisting of 4 small rectangles) \n
+   * b2Body* staticBody - body object for the each rectangle \n
+   * b2BodyDef myBodyDef - body definition for the bumpers \n
+   * b2PolygonShape boxShape - shape definition for each rectangle \n
+   * b2FixtureDef boxFixtureDef - fixture definition of each rectangle \n
+   *
+   * -<b> Ball </b> \n
+   * b2Body* ballBody - body object for the ball \n
+   * b2BodyDef ballBodyDef - body definition for the ball \n
+   * b2CircleShape ball - shape definition for the ball \n
+   * b2FixtureDef ballFixtureDef - fixture definition of the ball \n
+   *
+   ***********************************************/
+/*  The is the constructor 
+    This is the documentation block for the constructor.
+ */ 
     dominos_t::dominos_t()
     {
+        /*! \var myBodyDef
+         */
          //Outer Box
         {
             b2BodyDef myBodyDef;
@@ -192,7 +209,7 @@ namespace cs251
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
         }
 
-         //Ball Director - Top
+        //Ball Director - Top
         {
             b2BodyDef myBodyDef;
             myBodyDef.type = b2_staticBody; //this will be a static body
@@ -312,7 +329,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.1f;
+                boxFixtureDef.restitution = 0.3f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -344,7 +361,7 @@ namespace cs251
             }
         }
 
-         //Ball Director - Left
+        //Ball Director - Left
         {
             b2BodyDef myBodyDef;
             myBodyDef.type = b2_staticBody; //this will be a static body
@@ -387,6 +404,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 0.3f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -417,6 +435,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 0.1f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -586,6 +605,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 0.1f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -662,7 +682,7 @@ namespace cs251
         {
             b2BodyDef myBodyDef;
             myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-16, 7); //slightly lower position
+            myBodyDef.position.Set(-16.5, 7); //slightly lower position
             {
             b2CircleShape circleShape1;
             circleShape1.m_p.Set(0, 0); //position, relative to body position
@@ -789,6 +809,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 0.1f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -930,7 +951,7 @@ namespace cs251
         {
             b2BodyDef myBodyDef;
             myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(1.5, 10); //slightly lower position
+            myBodyDef.position.Set(1, 10); //slightly lower position
             {
                 int times = 22;//set the initial value
                 b2Vec2 vs[times];
@@ -945,7 +966,7 @@ namespace cs251
                 b2Vec2 v3;
                 v3.Set(14,18);
                 b2Vec2 v4;
-                v4.Set(11,15);
+                v4.Set(11,14.5);
 
                 //vs[0].Set(17,-14);
 
@@ -963,7 +984,7 @@ namespace cs251
                 t+=step;
                 }
 
-                vs[10].Set(11,15);
+                vs[10].Set(11,14.5);
                 //vs[11].Set(10,16);
 
                 step = 1/(float)10;
@@ -996,6 +1017,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 0.1f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1072,6 +1094,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 0.1f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1126,6 +1149,7 @@ namespace cs251
                 b2FixtureDef boxFixtureDef;
                 boxFixtureDef.shape = &boxShape;
                 boxFixtureDef.density = 1;
+                boxFixtureDef.restitution = 0.1f;
 
                 b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
                 staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1144,6 +1168,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 0.1f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1161,6 +1186,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 0.1f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1178,6 +1204,7 @@ namespace cs251
             b2FixtureDef boxFixtureDef;
             boxFixtureDef.shape = &boxShape;
             boxFixtureDef.density = 1;
+            boxFixtureDef.restitution = 0.1f;
 
             b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
             staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
@@ -1678,8 +1705,9 @@ namespace cs251
             b2BodyDef ballBodyDef;
             ballBodyDef.allowSleep = false;
             ballBodyDef.type = b2_dynamicBody;
-            ballBodyDef.position.Set(19.5, 4);
+            ballBodyDef.position.Set(18.5, 4);
             //ballBodyDef.position.Set(-19.5, 20);
+            //ballBodyDef.position.Set(18.5, 4);
             {
             b2CircleShape ball;
             ball.m_p.Set(0, 0);
@@ -1687,7 +1715,7 @@ namespace cs251
             
             b2FixtureDef ballFixtureDef;
             ballFixtureDef.shape = &ball;
-            ballFixtureDef.density = 0.05;
+            ballFixtureDef.density = 0.1;
 
             //b2Body* 
             ballBody = m_world->CreateBody(&ballBodyDef);
