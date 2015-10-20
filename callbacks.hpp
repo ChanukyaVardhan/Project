@@ -27,12 +27,18 @@
 
 namespace cs251
 {
+
+  //extern b2PrismaticJointDef dominos_t::launcherJoint;
+  //extern b2PrismaticJointDef launcherJoint;
+
   class callbacks_t
   {
   public:
   //! Helper function for coordinates system conversion
   //! Note the function is a static function. Read about C++ static functions
   static b2Vec2 convert_screen_to_world(int32 x, int32 y);
+
+  //static extern b2PrismaticJointDef dominos_t::launcherJoint;
   
   //! GLUT resize callback. This is set via GLUI. Why is this so?
   //! This gets called when the window is resized. Passed as parameters

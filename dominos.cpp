@@ -16,1714 +16,380 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-/* 
- * Base code for CS 251 Software Systems Lab 
- * Department of Computer Science and Engineering, IIT Bombay
- * 
- */
-
-
 #include "cs251_base.hpp"
-#include "render.hpp"
-
-#ifdef __APPLE__
-  #include <GLUT/glut.h>
-#else
-  #include "GL/freeglut.h"
-#endif
-
-#include <cstring>
+#include <cstdio>
 using namespace std;
+using namespace cs251;
 
-#include "dominos.hpp"
 
-namespace cs251
+base_sim_t::base_sim_t()
 {
-    b2PrismaticJointDef launcherJoint;
-    b2PrismaticJointDef launcherJoint2;
-    b2Body* ballBody;
-    b2Body* flipperleftbody;
-    b2Body* flipperrightbody;
-    b2Body* flipperrotbody1;
-    b2Body* flipperrotbody2;
-    b2BodyDef ballBodyDef;
-    b2FixtureDef ballFixtureDef;
-  /********************************************//**
-   * -<b> These are the extern variables used for keyboard controlling </b>\n
-   * b2PrismaticJointDef launcherJoint,launcherJoint2 - joints for both the launchers on the Right \n
-   * b2Body* ballBody - body object for the ball \n
-   * b2BodyDef ballBodyDef - body definition for the ball \n
-   * b2FixtureDef ballFixtureDef - fixture definition for the ball \n
-   * b2Body* flipperleftbody, flipperrightbody - body objects for the flippers \n
-   * b2Body* flipperrotbody1, flipperrotbody2 - body objects for the parts making the rotating flipper \n
-   * 
-   * -<b> Outer Box </b>\n
-   * b2Body* staticBody - body object for the outer bounding box \n
-   * b2BodyDef myBodyDef - body definition for the box \n
-   * b2Vec2 vs[5] - vertices of the box \n
-   * b2ChainShape boxShape - chain joining the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the outer box \n
-   *
-   * -<b> Right Launcher lane</b> \n
-   * b2Body* staticBody - body object for the lane \n
-   * b2BodyDef myBodyDef - body definition for the lane \n
-   * b2Vec2 vs[47] - vertices used to create the lane \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the lane \n
-   *
-   * -<b> Left launcher support </b>\n
-   * b2Body* staticBody - body object for the support \n
-   * b2BodyDef myBodyDef - body definition for the support \n
-   * b2Vec2 vs[4] - vertices used to create the support \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the launcher support \n
-   *
-   * -<b> Left Launcher lane </b>\n
-   * b2Body* staticBody - body object for the lane \n
-   * b2BodyDef myBodyDef - body definition for the lane \n
-   * b2Vec2 vs[20] - vertices used to create the lane \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the lane \n
-   *
-   * -<b> Right flipper bat support</b> \n
-   * b2Body* staticBody - body object for the bat support \n
-   * b2BodyDef myBodyDef - body definition for the bat support \n
-   * b2Vec2 vs[8] - vertices used to create the bat support \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the bat support \n
-   *
-   * -<b> Right and Left flipper bats </b>\n
-   * b2Body* body2 - body object for the invisible support for both the bats \n
-   * b2Body *flipperRightBody, *flipperLeftBody - flippers controlled using keyboard \n
-   * b2BodyDef flipper - body definition for both the flipper bats \n
-   * b2PolygonShape shape - shape definition for the bats \n
-   * b2FixtureDef *fd - fixture definition for the flippers \n
-   * b2RevoluteJointDef jointDef - revolute joint between body2 and flipper \n
-   *
-   * -<b> Left rotaters' wall </b>\n
-   * b2Body* staticBody - body object for the wall \n
-   * b2BodyDef myBodyDef - body definition for the wall \n
-   * b2Vec2 vs[17] - vertices used to create the wall \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the wall \n
-   *
-   * -<b> Left bumpers </b>\n
-   * b2Body* staticBody - body object for a bumper  \n
-   * b2CircleShape circleShape1, circleShape2 -  shape definitions for inner and outer circles of the bumper \n
-   * b2BodyDef myBodydef - body definition of the bumper \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the bumper \n
-   * 
-   * -<b> Rotaters on the left </b>\n
-   * b2Body *body, *body2 - body objects for the two bodies constituting the rotater  \n
-   * b2BodyDef bd, bd2 - body definitions of the rotater \n
-   * b2PolygonShape shape, shape2 - shape definitions for the two bodies \n
-   * b2FixtureDef fd, fd2 - fixture definitions for the two bodies \n
-   *
-   * -<b> Obstacles </b>\n
-   * b2Body* staticBody - body object for the obstacles \n
-   * b2BodyDef myBodyDef - body definition for the obstacles \n
-   * b2Vec2 vs[] - vertices used to create the obstacles \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the obstacles \n
-   *
-   * -<b> Rectangles serving as lanes </b>\n
-   * (There are 3 rectangles like these on the top) \n
-   * b2Body* staticBody - body object for rectangles \n
-   * b2BodyDef myBodyDef - body definition for rectangles \n
-   * b2PolygonShape boxShape - shape definition for rectangles \n
-   * b2FixtureDef boxFixtureDef - fixture definition, shape and density are set \n
-   *
-   * -<b> Sling Shot left and right  </b>\n
-   * (each consists of two parts - Triangular chain and rectangular cover) \n
-   * -<b> Triangular Chain </b>\n
-   * b2Body* staticBody - body object for the triangular part \n
-   * b2BodyDef myBodyDef - body definition for the triangular part \n
-   * b2Vec2 vs[] - vertices used to create the triangular part \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the triangular part \n
-   * -<b> Rectangular Cover </b>\n
-   * b2Body* staticBody - body object for the cover \n
-   * b2BodyDef myBodyDef1 - body definition for the cover \n
-   * b2Vec2 vs[] - vertices used to create the cover \n
-   * b2ChainShape boxShape - chain created using the above vertices \n
-   * b2FixtureDef boxFixtureDef - fixture definition of the cover \n
-   *
-   * -<b> Flipper Wheel </b>\n
-   * b2Body *body, *body2 - body objects for the two bodies constituting the wheel  \n
-   * b2Body *flipperrotbody1, *flipperrotbody2 - wheel controlled using keyboard \n
-   * b2BodyDef bd, bd2 - body definitions of the wheel \n
-   * b2PolygonShape shape, shape2 - shape definitions for the two bodies \n
-   * b2FixtureDef fd, fd2 - fixture definitions for the two bodies \n
-   *
-   * -<b> Launcher </b>\n
-   * (Two launchers on the bottom right)
-   * b2Body* launcher, launcherSupport - body objects for the creating a spring joint \n
-   * b2BodyDef bd, bd2 - body definitions of the spring \n
-   * b2PolygonShape shape, shape2 - shape definition for the spring \n
-   * b2FixtureDef *fd, *fd2 - fixture definitions of the spring \n
-   * b2PrismaticJointDef launcherJoint - prismatic joint between launcher and launcherSupport \n
-   *
-   * -<b> Rectangular Bumpers </b>\n
-   * (there are 4 bumpers each consisting of 4 small rectangles) \n
-   * b2Body* staticBody - body object for the each rectangle \n
-   * b2BodyDef myBodyDef - body definition for the bumpers \n
-   * b2PolygonShape boxShape - shape definition for each rectangle \n
-   * b2FixtureDef boxFixtureDef - fixture definition of each rectangle \n
-   *
-   * -<b> Ball </b> \n
-   * b2Body* ballBody - body object for the ball \n
-   * b2BodyDef ballBodyDef - body definition for the ball \n
-   * b2CircleShape ball - shape definition for the ball \n
-   * b2FixtureDef ballFixtureDef - fixture definition of the ball \n
-   *
-   ***********************************************/
-/*  The is the constructor 
-    This is the documentation block for the constructor.
- */ 
-    dominos_t::dominos_t()
-    {
-        /*! \var myBodyDef
-         */
-         //Outer Box
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
+  b2Vec2 gravity;
+  gravity.Set(0.0f, -10.0f);
+  m_world = new b2World(gravity);
 
-            b2Vec2 vs[5];
 
-            vs[0].Set(20,-14);
-            vs[1].Set(20, 34);
-            vs[2].Set(-20,34);
-            vs[3].Set(-20,-14);
-            vs[4].Set(20,-14);
-              
-            b2ChainShape boxShape;
-            boxShape.CreateChain(vs, 5);
 
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
+  m_text_line = 30;
 
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-        }
+  m_point_count = 0;
 
-        //Ball Director - Top
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-
-            {
-                int times = 58;//set the initial value
-                b2Vec2 vs[times];
-
-                float step = 1/(float)19;
-                float t = 0;
-
-                b2Vec2 v1;
-                v1.Set(20,9);
-                b2Vec2 v2;
-                v2.Set(20,14);
-                b2Vec2 v3;
-                v3.Set(20,21);
-                b2Vec2 v4;
-                v4.Set(17,31);
-
-                vs[0].Set(20,-14);
-
-                for(int i = 1;i < 20;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                step = 1/(float)10;
-                t = 0;
-
-                v1.Set(17,31);
-                v2.Set(16,33);
-                v3.Set(15,34);
-                v4.Set(14,34);
-
-                for(int i = 20  ;i < 30;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                step = 1/(float)10;
-                t = 0;
-
-                v1.Set(-14,34);
-                v2.Set(-20,33);
-                v3.Set(-20,30);
-                v4.Set(-20,28);
-
-                for(int i = 30  ;i < 40;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-                //this is the point
-                //vs[40].Set(-10,-5);
-
-                step = 1/(float)10;
-                t = 0;
-
-                v1.Set(-20,2);
-                v2.Set(-18.5,1);
-                v3.Set(-18.5,1);
-                v4.Set(-20,0);
-
-                for(int i = 40  ;i < 50;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-                vs[50].Set(-20,0);
-                vs[51].Set(-20,-5);
-                vs[52].Set(-6.5,-10);
-                vs[53].Set(-6.25,-10.25);
-                vs[54].Set(-6.5,-10.5);
-                vs[55].Set(-20,-6);
-                vs[56].Set(-6.5,-10.5);
-                vs[57].Set(-6.5,-14);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.3f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        //Bottom Support
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-            {
-                b2Vec2 vs[5];
-
-                vs[0].Set(14,-14);
-                vs[1].Set(14,-9.5);
-                vs[2].Set(4.5,-12);
-                vs[3].Set(4.5,-14);
-                
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, 4);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        //Ball Director - Left
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-            {
-                int times = 20;//set the initial value
-                b2Vec2 vs[times];
-
-                float step = 1/(float)19;
-                float t = 0;
-
-                b2Vec2 v1;
-                v1.Set(17,9);
-                b2Vec2 v2;
-                v2.Set(17,14);
-                b2Vec2 v3;
-                v3.Set(17,21);
-                b2Vec2 v4;
-                v4.Set(14,31);
-
-                vs[0].Set(17,-14);
-
-                for(int i = 1;i < 20;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.3f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        //Flipper bat supporter - Right
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-
-            {
-                b2Vec2 vs[8];
-
-                vs[0].Set(14,-7.5);
-                vs[1].Set(14,-0.5);
-                vs[2].Set(13.5,-0.5);
-                vs[3].Set(13.5,-6.5);
-                vs[4].Set(4.5,-10);
-                vs[5].Set(4,-10.25);
-                vs[6].Set(4.5,-10.5);
-                vs[7].Set(14,-7.5);
-                
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, 8);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.1f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        //Left Flipper Bat
-        {
-            b2PolygonShape shape;
-            shape.SetAsBox(1.5f, 0.2f);
-        
-            b2BodyDef flipper;
-            flipper.position.Set(-6.0f, -2.25f);
-            flipper.type = b2_dynamicBody;
-            flipper.allowSleep = false;
-            //b2Body*
-            flipperleftbody = m_world->CreateBody(&flipper);
-            b2FixtureDef *fd = new b2FixtureDef;
-            fd->density = 1.f;
-            fd->shape = new b2PolygonShape;
-            fd->shape = &shape;
-            flipperleftbody->CreateFixture(fd);
-
-            b2PolygonShape shape2;
-            shape2.SetAsBox(0.2f, 2.0f);
-            b2BodyDef bd2;
-            bd2.position.Set(-6.0f, -0.25f);
-            bd2.allowSleep = false;
-            b2Body* body2 = m_world->CreateBody(&bd2);
-
-            b2RevoluteJointDef jointDef;
-            jointDef.bodyA = flipperleftbody;
-            jointDef.bodyB = body2;
-            jointDef.localAnchorA.Set(-1.5,0);
-            jointDef.localAnchorB.Set(0,0);
-            jointDef.collideConnected = false;
-            jointDef.enableLimit = true;
-            jointDef.lowerAngle = -35 * 0.0174532925;
-            jointDef.upperAngle =  14.534 * 0.0174532925;
-            m_world->CreateJoint(&jointDef);
-        }
-
-        //Right Flipper Bat
-        {
-            b2PolygonShape shape;
-            shape.SetAsBox(1.5f, 0.2f);
-        
-            b2BodyDef flipper;
-            flipper.position.Set(3.75f, -2.25f);
-            flipper.type = b2_dynamicBody;
-            flipper.allowSleep = false;
-            //b2Body*
-            flipperrightbody = m_world->CreateBody(&flipper);
-            b2FixtureDef *fd = new b2FixtureDef;
-            fd->density = 1.f;
-            fd->shape = new b2PolygonShape;
-            fd->shape = &shape;
-            flipperrightbody->CreateFixture(fd);
-
-            b2PolygonShape shape2;
-            shape2.SetAsBox(0.2f, 2.0f);
-            b2BodyDef bd2;
-            bd2.position.Set(3.75f, -0.25f);
-            bd2.allowSleep = false;
-            b2Body* body2 = m_world->CreateBody(&bd2);
-
-            b2RevoluteJointDef jointDef;
-            jointDef.bodyA = flipperrightbody;
-            jointDef.bodyB = body2;
-            jointDef.localAnchorA.Set(1.5,0);
-            jointDef.localAnchorB.Set(0,0);
-            jointDef.collideConnected = false;
-            jointDef.enableLimit = true;
-            jointDef.lowerAngle = -14.534 * 0.0174532925;
-            jointDef.upperAngle =  35 * 0.0174532925;
-            m_world->CreateJoint(&jointDef);
-        }
-
-        //Left side rotaters wall
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-            {
-                int times = 17;//set the initial value
-                b2Vec2 vs[times];
-
-                float step = 1/(float)5;
-                float t = 0;
-
-                b2Vec2 v1;
-                v1.Set(-17,10);
-                b2Vec2 v2;
-                v2.Set(-16,9);
-                b2Vec2 v3;
-                v3.Set(-15,8);
-                b2Vec2 v4;
-                v4.Set(-14,8);
-
-                //vs[0].Set(17,-14);
-
-                for(int i = 0;i < 5;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                step = 1/(float)5;
-                t = 0;
-
-                v1.Set(-14,7.75);
-                v2.Set(-13,7);
-                v3.Set(-12,7);
-                v4.Set(-11,6);
-
-                for(int i = 5;i < 10;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                vs[10].Set(-11,6);
-                //vs[11].Set(-11,-2);
-
-                step = 1/(float)5;
-                t = 0;
-
-                v1.Set(-11,-2);
-                v2.Set(-12,-3);
-                v3.Set(-13,-3);
-                v4.Set(-14,-4);
-
-                for(int i = 11;i < 16;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-                vs[16].Set(-14,-4);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.1f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        /*// Circle 1 in left side near rotators
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-18, 10); //slightly lower position
-            {
-            b2CircleShape circleShape1;
-            circleShape1.m_p.Set(0, 0); //position, relative to body position
-            circleShape1.m_radius = 1; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape1;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-
-            {
-            b2CircleShape circleShape2;
-            circleShape2.m_p.Set(0, 0); //position, relative to body position
-            circleShape2.m_radius = 0.4; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape2;
-            boxFixtureDef.density = 1;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }*/
-
-        // Circle 2 in left side near rotators
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-14, 10); //slightly lower position
-            {
-            b2CircleShape circleShape1;
-            circleShape1.m_p.Set(0, 0); //position, relative to body position
-            circleShape1.m_radius = 1; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape1;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-
-            {
-            b2CircleShape circleShape2;
-            circleShape2.m_p.Set(0, 0); //position, relative to body position
-            circleShape2.m_radius = 0.4; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape2;
-            boxFixtureDef.density = 1;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Circle 3 in left side near rotators
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-16.5, 7); //slightly lower position
-            {
-            b2CircleShape circleShape1;
-            circleShape1.m_p.Set(0, 0); //position, relative to body position
-            circleShape1.m_radius = 1; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape1;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-
-            {
-            b2CircleShape circleShape2;
-            circleShape2.m_p.Set(0, 0); //position, relative to body position
-            circleShape2.m_radius = 0.4; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape2;
-            boxFixtureDef.density = 1;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Rotator 1
-        {
-            b2PolygonShape shape;
-            shape.SetAsBox(1.3f, 0.1f);
-          
-            b2BodyDef bd;
-            bd.position.Set(-17.0f, 15.0f);
-            bd.type = b2_kinematicBody;
-            b2Body* body = m_world->CreateBody(&bd);
-            b2FixtureDef *fd = new b2FixtureDef;
-            fd->density = 1.f;
-            fd->shape = new b2PolygonShape;
-            fd->shape = &shape;
-            body->CreateFixture(fd);
-            body->SetAngularVelocity( 5 );
-
-
-            b2PolygonShape shape2;
-            shape2.SetAsBox(0.1f, 1.3f);
-            b2BodyDef bd2;
-            bd2.position.Set(-17.0f, 15.0f);
-            bd2.type = b2_kinematicBody;
-            b2Body* body2 = m_world->CreateBody(&bd2);  //here we made a bd2 mistake
-            b2FixtureDef *fd2 = new b2FixtureDef;
-            fd2->density = 1.f;
-            fd2->shape = new b2PolygonShape;
-            fd2->shape = &shape2;
-            body2->CreateFixture(fd2);
-            body2->SetAngularVelocity( 5 );
-
-            b2RevoluteJointDef jointDef;
-            jointDef.bodyA = body;
-            jointDef.bodyB = body2;
-            jointDef.localAnchorA.Set(0,0);
-            jointDef.localAnchorB.Set(0,0);
-            jointDef.collideConnected = false;
-            m_world->CreateJoint(&jointDef);
-        }
-
-        // Rotator 2
-        {
-            b2PolygonShape shape;
-            shape.SetAsBox(1.3f, 0.1f);
-          
-            b2BodyDef bd;
-            bd.position.Set(-14.0f, 14.0f);
-            bd.type = b2_kinematicBody;
-            b2Body* body = m_world->CreateBody(&bd);
-            b2FixtureDef *fd = new b2FixtureDef;
-            fd->density = 1.f;
-            fd->shape = new b2PolygonShape;
-            fd->shape = &shape;
-            body->CreateFixture(fd);
-            body->SetAngularVelocity( -5 );
-
-
-            b2PolygonShape shape2;
-            shape2.SetAsBox(0.1f, 1.3f);
-            b2BodyDef bd2;
-            bd2.position.Set(-14.0f, 14.0f);
-            bd2.type = b2_kinematicBody;
-            b2Body* body2 = m_world->CreateBody(&bd2);  //here we made a bd2 mistake
-            b2FixtureDef *fd2 = new b2FixtureDef;
-            fd2->density = 1.f;
-            fd2->shape = new b2PolygonShape;
-            fd2->shape = &shape2;
-            body2->CreateFixture(fd2);
-            body2->SetAngularVelocity( -5 );
-
-            b2RevoluteJointDef jointDef;
-            jointDef.bodyA = body;
-            jointDef.bodyB = body2;
-            jointDef.localAnchorA.Set(0,0);
-            jointDef.localAnchorB.Set(0,0);
-            jointDef.collideConnected = false;
-            m_world->CreateJoint(&jointDef);
-        }
-
-        // Top red part without Hole
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-10, 32); //slightly lower position
-
-            b2Vec2 vertices[5];
-            vertices[0].Set(-1,  5);
-            vertices[1].Set(-1,  0);
-            vertices[2].Set( 2,  2);
-            vertices[3].Set( 2,  5);
-            vertices[4].Set( 0,  6);
+  m_world->SetDebugDraw(&m_debug_draw);
   
+  m_step_count = 0;
 
-            b2PolygonShape boxShape;
-            boxShape.Set(vertices,5);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 0.1f;
+  b2BodyDef body_def;
+  m_ground_body = m_world->CreateBody(&body_def);
 
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-        }
+  memset(&m_max_profile, 0, sizeof(b2Profile));
+  memset(&m_total_profile, 0, sizeof(b2Profile));
 
-        // Top Bumper Circle 1
+
+}
+
+void base_sim_t::launch()
         {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-2 , 30); //slightly lower position
-            {
-            b2CircleShape circleShape1;
-            circleShape1.m_p.Set(0, 0); //position, relative to body position
-            circleShape1.m_radius = 2; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape1;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-
-            {
-            b2CircleShape circleShape2;
-            circleShape2.m_p.Set(0, 0); //position, relative to body position
-            circleShape2.m_radius = 0.8; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape2;
-            boxFixtureDef.density = 1;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Top Bumper Circle 2
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(5 , 31); //slightly lower position
-            {
-            b2CircleShape circleShape1;
-            circleShape1.m_p.Set(0, 0); //position, relative to body position
-            circleShape1.m_radius = 2; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape1;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-
-            {
-            b2CircleShape circleShape2;
-            circleShape2.m_p.Set(0, 0); //position, relative to body position
-            circleShape2.m_radius = 0.8; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape2;
-            boxFixtureDef.density = 1;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Top Bumper Circle 3
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(1.5 , 25); //slightly lower position
-            {
-            b2CircleShape circleShape1;
-            circleShape1.m_p.Set(0, 0); //position, relative to body position
-            circleShape1.m_radius = 2; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape1;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-
-            {
-            b2CircleShape circleShape2;
-            circleShape2.m_p.Set(0, 0); //position, relative to body position
-            circleShape2.m_radius = 0.8; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape2;
-            boxFixtureDef.density = 1;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Top Bumper to the left
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-15 , 38); //slightly lower position
-            {
-            b2CircleShape circleShape1;
-            circleShape1.m_p.Set(0, 0); //position, relative to body position
-            circleShape1.m_radius = 2; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape1;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-
-            {
-            b2CircleShape circleShape2;
-            circleShape2.m_p.Set(0, 0); //position, relative to body position
-            circleShape2.m_radius = 0.8; //radius
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &circleShape2;
-            boxFixtureDef.density = 1;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Red Part obstacles on right side up
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(1, 10); //slightly lower position
-            {
-                int times = 22;//set the initial value
-                b2Vec2 vs[times];
-
-                float step = 1/(float)10;
-                float t = 0;
-
-                b2Vec2 v1;
-                v1.Set(11,25);
-                b2Vec2 v2;
-                v2.Set(14,20);
-                b2Vec2 v3;
-                v3.Set(14,18);
-                b2Vec2 v4;
-                v4.Set(11,14.5);
-
-                //vs[0].Set(17,-14);
-
-                for(int i = 0;i < 10;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                vs[10].Set(11,14.5);
-                //vs[11].Set(10,16);
-
-                step = 1/(float)10;
-                t = 0;
-
-                v1.Set(10,16);
-                v2.Set(13,20);
-                v3.Set(12,20);
-                v4.Set(11,25);
-
-                for(int i = 11;i < 21;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                vs[21].Set(11,25);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.1f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Left Part obstacles above rotators
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-            {
-                int times = 22;//set the initial value
-                b2Vec2 vs[times];
-
-                float step = 1/(float)10;
-                float t = 0;
-
-                b2Vec2 v1;
-                v1.Set(-17,20);
-                b2Vec2 v2;
-                v2.Set(-16,15);
-                b2Vec2 v3;
-                v3.Set(-15,14);
-                b2Vec2 v4;
-                v4.Set(-14,14);
-
-                //vs[0].Set(17,-14);
-
-                for(int i = 0;i < 10;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                vs[10].Set(-14,14);
-                //vs[11].Set(10,16);
-
-                step = 1/(float)10;
-                t = 0;
-
-                v1.Set(-12,16);
-                v2.Set(-16,18);
-                v3.Set(-16,19);
-                v4.Set(-17,20);
-
-                for(int i = 11;i < 21;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                vs[21].Set(-17,20);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.1f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Red Part obstacles for hole
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-            {
-                int times = 14;//set the initial value
-                b2Vec2 vs[times];
-
-                float step = 1/(float)10;
-                float t = 0;
-
-                b2Vec2 v1;
-                v1.Set(14,12);
-                b2Vec2 v2;
-                v2.Set(13.5,11);
-                b2Vec2 v3;
-                v3.Set(13,9);
-                b2Vec2 v4;
-                v4.Set(12.5,9);
-
-                //vs[0].Set(17,-14);
-
-                for(int i = 0;i < 10;i++)
-                {
-                b2Vec2 pa = v1;
-                pa *= ( (1-t)*(1-t)*(1-t) );
-                b2Vec2 pb = v2;
-                pb *= ( 3*t*(1-t)*(1-t) );
-                b2Vec2 pc = v3;
-                pc *= ( 3*t*t*(1-t) );
-                b2Vec2 pd = v4;
-                pd *= ( t*t*t );
-                vs[i] = pa+pb+pc+pd;
-                t+=step;
-                }
-
-                vs[10].Set(12.5,9);
-                vs[11].Set(12.5,5);
-                vs[12].Set(14,4);
-                vs[13].Set(14,12);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 0.1f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Top small rectangles
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(6, 36); //slightly lower position
-
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.2,1.2);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 0.1f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-        }
-
-        // Top small rectangles
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(3, 36); //slightly lower position
-
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.2,1.2);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 0.1f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-        }
-
-        // Top small rectangles
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 36); //slightly lower position
-
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.2,1.2);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 0.1f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-        }
-
-        // Sling Shot left
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-            {
-                int times = 4;//set the initial value
-                b2Vec2 vs[times];
-
-                vs[0].Set(-9,-3);
-                vs[1].Set(-6,-8);
-                vs[2].Set(-9,-6);
-                vs[3].Set(-9,-3);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            b2BodyDef myBodyDef1;
-            myBodyDef1.type = b2_staticBody; //this will be a static body
-            myBodyDef1.position.Set(0, 10); //slightly lower position
-            {
-                int times = 4;//set the initial value
-                b2Vec2 vs[times];
-
-                vs[0].Set(-8.85,-3.25);
-                vs[1].Set(-8.75,-2.75);
-                vs[2].Set(-5.75,-7.75);
-                vs[3].Set(-6.15,-8);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 1.2f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef1); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Sling Shot right
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(0, 10); //slightly lower position
-            {
-                int times = 4;//set the initial value
-                b2Vec2 vs[times];
-
-                vs[0].Set(7,-3);
-                vs[1].Set(4,-8);
-                vs[2].Set(7,-6);
-                vs[3].Set(7,-3);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            b2BodyDef myBodyDef1;
-            myBodyDef1.type = b2_staticBody; //this will be a static body
-            myBodyDef1.position.Set(0, 10); //slightly lower position
-            {
-                int times = 4;//set the initial value
-                b2Vec2 vs[times];
-
-                vs[0].Set(6.85,-3.25);
-                vs[1].Set(6.75,-2.75);
-                vs[2].Set(3.75,-7.75);
-                vs[3].Set(4.15,-8);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                boxFixtureDef.restitution = 1.2f;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef1); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Flipper wheel 
-        {
-            b2PolygonShape shape;
-            shape.SetAsBox(2.0f, 0.1f);
-          
-            b2BodyDef bd;
-            bd.position.Set(0.5f, 14.0f);
-            bd.type = b2_kinematicBody;
-            //b2Body* 
-            flipperrotbody1 = m_world->CreateBody(&bd);
-            b2FixtureDef *fd = new b2FixtureDef;
-            fd->density = 1.f;
-            fd->shape = new b2PolygonShape;
-            fd->shape = &shape;
-            flipperrotbody1->CreateFixture(fd);
-            flipperrotbody1->SetAngularVelocity( -3 );
-
-
-            b2PolygonShape shape2;
-            shape2.SetAsBox(0.1f, 2.0f);
-            b2BodyDef bd2;
-            bd2.position.Set(0.5f, 14.0f);
-            bd2.type = b2_kinematicBody;
-            //b2Body* 
-            flipperrotbody2 = m_world->CreateBody(&bd2);  //here we made a bd2 mistake
-            b2FixtureDef *fd2 = new b2FixtureDef;
-            fd2->density = 1.f;
-            fd2->shape = new b2PolygonShape;
-            fd2->shape = &shape2;
-            flipperrotbody2->CreateFixture(fd2);
-            flipperrotbody2->SetAngularVelocity( -3 );
-
-            b2RevoluteJointDef jointDef;
-            jointDef.bodyA = flipperrotbody1;
-            jointDef.bodyB = flipperrotbody2;
-            jointDef.localAnchorA.Set(0,0);
-            jointDef.localAnchorB.Set(0,0);
-            jointDef.collideConnected = false;
-            m_world->CreateJoint(&jointDef);
-        }
-
-        //Launcher initial for the game starting
-        {
-            b2PolygonShape shape;
-            shape.SetAsBox(1.0f, 1.0f);
-          
-            b2BodyDef bd;
-            bd.position.Set(18.5f, -1.0f);
-            bd.type = b2_dynamicBody;
-            bd.allowSleep = false;
-            b2Body* launcher;
-            launcher = m_world->CreateBody(&bd);
-            b2FixtureDef *fd = new b2FixtureDef;
-            fd->density = 1.f;
-            fd->shape = new b2PolygonShape;
-            fd->shape = &shape;
-            launcher->CreateFixture(fd);
-
-
-            b2PolygonShape shape2;
-            shape2.SetAsBox(0.2f, 0.5f);
-            b2BodyDef bd2;
-            bd2.position.Set(18.5f, -2.5f);
-            bd2.type = b2_staticBody;
-            bd2.allowSleep = false;
-            b2Body* launcherSupport;
-            launcherSupport = m_world->CreateBody(&bd2);
-            b2FixtureDef *fd2 = new b2FixtureDef;
-            fd2->density = 1.f;
-            fd2->shape = new b2PolygonShape;
-            fd2->shape = &shape2;
-            launcherSupport->CreateFixture(fd2);
-
-            //b2PrismaticJointDef launcherJoint;
-            launcherJoint.bodyA = launcher;
-            launcherJoint.bodyB = launcherSupport;
-            launcherJoint.localAnchorA.Set(0,0);
-            launcherJoint.localAnchorB.Set(0,1.5);
-            //launcherJoint.localAxisA.Set(0,1);
-            launcherJoint.referenceAngle = 0.0174532925*90;
+          {
+            extern b2PrismaticJointDef launcherJoint;
             launcherJoint.enableLimit = true;
             launcherJoint.lowerTranslation = 0;
-            launcherJoint.upperTranslation = 5;
-            launcherJoint.collideConnected = true;
-            m_world->CreateJoint( &launcherJoint );          
-            //launcherJoint.enableMotor = true;
-            //launcherJoint.maxMotorForce = 500;//this is a powerful machine after all...
-            //launcherJoint.motorSpeed = 5;//5 units per second in positive axis direction
-            //m_world->CreateJoint( &launcherJoint );
+            launcherJoint.upperTranslation = 2;
+            launcherJoint.enableMotor = true;
+            launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
+            launcherJoint.motorSpeed = 32;//5 units per second in positive axis direction
+            
+            m_world->CreateJoint(&launcherJoint);
+            launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
+            launcherJoint.motorSpeed = -32;//5 units per second in positive axis direction
+            m_world->CreateJoint(&launcherJoint);
+            launcherJoint.enableMotor = false;          
+          }
         }
 
-        //Launcher inside the board on the right bottom side
-        {
-            b2PolygonShape shape;
-            shape.SetAsBox(1.0f, 1.0f);
+/*void base_sim_t::delaunch()
+{
+  {
+          extern b2PrismaticJointDef launcherJoint;
+          //launcherJoint.referenceAngle = 0.0174532925*90;
+          //launcherJoint.localAxisA.Set(0,1);
+          launcherJoint.enableLimit = true;
+          launcherJoint.lowerTranslation = 0;
+          launcherJoint.upperTranslation = 2;
+          launcherJoint.enableMotor = true;
+          launcherJoint.maxMotorForce = 500000;//this is a powerful machine after all...
+          launcherJoint.motorSpeed = -50;//5 units per second in positive axis direction
           
-            b2BodyDef bd;
-            bd.position.Set(15.5f, -1.0f);
-            bd.type = b2_dynamicBody;
-            bd.allowSleep = false;
-            b2Body* launcher;
-            launcher = m_world->CreateBody(&bd);
-            b2FixtureDef *fd = new b2FixtureDef;
-            fd->density = 1.f;
-            fd->shape = new b2PolygonShape;
-            fd->shape = &shape;
-            launcher->CreateFixture(fd);
+          m_world->CreateJoint(&launcherJoint);
+          //launcherJoint.motorSpeed = -5;
+          //m_world->CreateJoint(&launcherJoint);
+          launcherJoint.enableMotor = false;
+  }
+}*/
 
-
-            b2PolygonShape shape2;
-            shape2.SetAsBox(0.2f, 0.5f);
-            b2BodyDef bd2;
-            bd2.position.Set(15.5f, -2.5f);
-            bd2.type = b2_staticBody;
-            bd2.allowSleep = false;
-            b2Body* launcherSupport;
-            launcherSupport = m_world->CreateBody(&bd2);
-            b2FixtureDef *fd2 = new b2FixtureDef;
-            fd2->density = 1.f;
-            fd2->shape = new b2PolygonShape;
-            fd2->shape = &shape2;
-            launcherSupport->CreateFixture(fd2);
-
-            //b2PrismaticJointDef launcherJoint;
-            launcherJoint2.bodyA = launcher;
-            launcherJoint2.bodyB = launcherSupport;
-            launcherJoint2.localAnchorA.Set(0,0);
-            launcherJoint2.localAnchorB.Set(0,1.5);
-            //launcherJoint.localAxisA.Set(0,1);
-            launcherJoint2.referenceAngle = 0.0174532925*90;
+void base_sim_t::launch2()
+        {
+          {
+            extern b2PrismaticJointDef launcherJoint2;
             launcherJoint2.enableLimit = true;
             launcherJoint2.lowerTranslation = 0;
-            launcherJoint2.upperTranslation = 5;
-            launcherJoint2.collideConnected = true;
-            m_world->CreateJoint( &launcherJoint2 );
-        }
-        
-        // Yellow Bumper to the right having hole connection
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(12.2, 15.5); //slightly lower position
-
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.5,0.3,b2Vec2(0,0),1.56);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.5,0.3,b2Vec2(0,1),1.56);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.5,0.3,b2Vec2(0,2),1.56);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.5,0.3,b2Vec2(0,3),1.56);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Yellow Bumper to the to the red part above rotators
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-13.5, 24); //slightly lower position
-
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(0,0),0.78);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(0.5,0.5),0.78);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(1,1),0.78);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(1.5,1.5),0.78);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Yellow Bumper to the to the red part in the upper part having hole
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-10.2, 32); //slightly lower position
-
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.4507,0.4507,b2Vec2(0,0),0.588);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.4507,0.4507,b2Vec2(0.65,0.4507),0.588);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.4507,0.4507,b2Vec2(1.3,0.9014),0.588);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.4507,0.4507,b2Vec2(1.95,1.3521),0.588);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-        }
-
-        // Yellow Bumper attached to the circular bumper
-        {
-            b2BodyDef myBodyDef;
-            myBodyDef.type = b2_staticBody; //this will be a static body
-            myBodyDef.position.Set(-1, 22.5); //slightly lower position
-
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(0,0),2.34);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(0.5,-0.5),2.34);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(1,-1),2.34);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            {
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(0.3536,0.3536,b2Vec2(1.5,-1.5),2.34);
-              
-            b2FixtureDef boxFixtureDef;
-            boxFixtureDef.shape = &boxShape;
-            boxFixtureDef.density = 1;
-            boxFixtureDef.restitution = 1.0f;
-
-            b2Body* staticBody = m_world->CreateBody(&myBodyDef); //add body to world
-            staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-            }
-            b2BodyDef myBodyDef1;
-            myBodyDef1.type = b2_staticBody; //this will be a static body
-            myBodyDef1.position.Set(0, 10); //slightly lower position
-            {
-                int times = 2;//set the initial value
-                b2Vec2 vs1[times];
-                b2Vec2 vs2[times];
-
-                vs1[0].Set(-1,13);
-                vs1[1].Set(-0.2,14);
-                vs2[0].Set(1,11);
-                vs2[1].Set(2,13);
-
-                b2ChainShape boxShape;
-                boxShape.CreateChain(vs1, times);
-                b2ChainShape boxShape1;
-                boxShape1.CreateChain(vs2, times);
-
-                b2FixtureDef boxFixtureDef;
-                boxFixtureDef.shape = &boxShape;
-                boxFixtureDef.density = 1;
-                b2FixtureDef boxFixtureDef1;
-                boxFixtureDef1.shape = &boxShape1;
-                boxFixtureDef1.density = 1;
-
-                b2Body* staticBody = m_world->CreateBody(&myBodyDef1); //add body to world
-                staticBody->CreateFixture(&boxFixtureDef); //add fixture to body
-                b2Body* staticBody1 = m_world->CreateBody(&myBodyDef1); //add body to world
-                staticBody1->CreateFixture(&boxFixtureDef1); //add fixture to body
-            }
-        }
-
-        
-        //ball
-        {
-            b2BodyDef ballBodyDef;
-            ballBodyDef.allowSleep = false;
-            ballBodyDef.type = b2_dynamicBody;
-            ballBodyDef.position.Set(18.5, 4);
-            //ballBodyDef.position.Set(-19.5, 20);
-            //ballBodyDef.position.Set(18.5, 4);
-            {
-            b2CircleShape ball;
-            ball.m_p.Set(0, 0);
-            ball.m_radius = 0.5;
+            launcherJoint2.upperTranslation = 0.7;
+            launcherJoint2.enableMotor = true;
+            launcherJoint2.maxMotorForce = 500000;//this is a powerful machine after all...
+            launcherJoint2.motorSpeed = 32;//5 units per second in positive axis direction
             
-            b2FixtureDef ballFixtureDef;
-            ballFixtureDef.shape = &ball;
-            ballFixtureDef.density = 0.1;
-
-            //b2Body* 
-            ballBody = m_world->CreateBody(&ballBodyDef);
-            ballBody->CreateFixture(&ballFixtureDef);
-            }
+            m_world->CreateJoint(&launcherJoint2);
+            launcherJoint2.maxMotorForce = 500000;//this is a powerful machine after all...
+            launcherJoint2.motorSpeed = -32;//5 units per second in positive axis direction
+            m_world->CreateJoint(&launcherJoint2);
+            launcherJoint2.enableMotor = false;          
+          }
         }
-        
-    }
 
-  sim_t *sim = new sim_t("Dominos", dominos_t::create);
+/*void base_sim_t::delaunch2()
+{
+  {
+          extern b2PrismaticJointDef launcherJoint2;
+          launcherJoint2.enableLimit = true;
+          launcherJoint2.lowerTranslation = 0;
+          launcherJoint2.upperTranslation = 0.7;
+          launcherJoint2.enableMotor = true;
+          launcherJoint2.maxMotorForce = 5000;//this is a powerful machine after all...
+          launcherJoint2.motorSpeed = -32;//5 units per second in positive axis direction
+          
+          m_world->CreateJoint(&launcherJoint2);
+          launcherJoint2.enableMotor = false;
+  }
+}*/
+
+/*void base_sim_t::ball()
+{
+    //extern b2BodyDef ballBodyDef;
+    //extern b2FixtureDef ballFixtureDef;
+    extern b2Body* ballBody;
+    ballBody->SetTransform(b2Vec2(10,20), 0);
+    //m_world->DestroyBody(ballBody); //this is to delete the ball
+    //ballBody = m_world->CreateBody(&ballBodyDef); //add body to world
+    //ballBody->CreateFixture(&ballFixtureDef); //add fixture to body
+    //delete ballBody;
+}*/
+
+/*void base_sim_t::createball()
+{
+    extern b2BodyDef ballBodyDef;
+    extern b2FixtureDef ballFixtureDef;
+    extern b2Body* ballBody;
+    //m_world->DestroyBody(ballBody);
+    ballBody = m_world->CreateBody(&ballBodyDef); //add body to world
+    ballBody->CreateFixture(&ballFixtureDef); //add fixture to body
+}*/
+
+void base_sim_t::flipperleft()
+{
+    extern b2Body* flipperleftbody;
+    //flipperleftbody->SetLinearVelocity( b2Vec2(0,10) );
+    flipperleftbody->ApplyLinearImpulse( b2Vec2(0,50), flipperleftbody->GetWorldCenter(), 1 );
+    
+    //check for coming down slowly
+    //flipperleftbody->ApplyAngularImpulse( 10 , 1);
+    /*extern b2Body* flipperwheelrightbody;
+    //b2RevoluteJointDef wheeljointDef1;
+    flipperwheelrightbody->ApplyLinearImpulse( b2Vec2(0,-50), flipperwheelrightbody->GetWorldCenter(), 1 );*/
+
+}
+
+void base_sim_t::flipperright()
+{
+    extern b2Body* flipperrightbody;
+    flipperrightbody->ApplyLinearImpulse( b2Vec2(0,50), flipperrightbody->GetWorldCenter(), 1 );
+    /*extern b2Body* flipperwheelrightbody;
+    //b2RevoluteJointDef wheeljointDef1;
+    flipperwheelrightbody->ApplyLinearImpulse( b2Vec2(0,50), flipperwheelrightbody->GetWorldCenter(), 1 );
+    extern b2Body* flipperwheelupbody;
+    //b2RevoluteJointDef wheeljointDef1;
+    flipperwheelupbody->ApplyLinearImpulse( b2Vec2(50,0), flipperwheelupbody->GetWorldCenter(), 1 );
+    //flipperwheelupbody->ApplyLinearImpulse( b2Vec2(0,50), flipperwheelupbody->GetWorldCenter(), 1 );        
+    extern b2Body* flipperwheelleftbody;
+    flipperwheelleftbody->ApplyLinearImpulse( b2Vec2(0,-50), flipperwheelleftbody->GetWorldCenter(), 1 );
+    extern b2Body* flipperwheeldownbody;
+    flipperwheeldownbody->ApplyLinearImpulse( b2Vec2(-50,0), flipperwheeldownbody->GetWorldCenter(), 1 );*/
+
+}
+
+void base_sim_t::flipperwheelright()
+{
+    extern b2Body* flipperrotbody1;
+    flipperrotbody1->SetAngularVelocity( -3 );
+    extern b2Body* flipperrotbody2;
+    flipperrotbody2->SetAngularVelocity( -3 );
+}
+
+void base_sim_t::flipperwheelleft()
+{
+    extern b2Body* flipperrotbody1;
+    flipperrotbody1->SetAngularVelocity( 3 );
+    extern b2Body* flipperrotbody2;
+    flipperrotbody2->SetAngularVelocity( 3 );
+}
+
+base_sim_t::~base_sim_t()
+{
+  // By deleting the world, we delete the bomb, mouse joint, etc.
+  delete m_world;
+  m_world = NULL;
+}
+
+void base_sim_t::pre_solve(b2Contact* contact, const b2Manifold* oldManifold)
+{
+  const b2Manifold* manifold = contact->GetManifold();
+  
+  if (manifold->pointCount == 0)
+    {
+      return;
+    }
+  
+  b2Fixture* fixtureA = contact->GetFixtureA();
+  b2Fixture* fixtureB = contact->GetFixtureB();
+  
+  b2PointState state1[b2_maxManifoldPoints], state2[b2_maxManifoldPoints];
+  b2GetPointStates(state1, state2, oldManifold, manifold);
+  
+  b2WorldManifold world_manifold;
+  contact->GetWorldManifold(&world_manifold);
+  
+  for (int32 i = 0; i < manifold->pointCount && m_point_count < k_max_contact_points; ++i)
+    {
+      contact_point_t* cp = m_points + m_point_count;
+      cp->fixtureA = fixtureA;
+      cp->fixtureB = fixtureB;
+      cp->position = world_manifold.points[i];
+      cp->normal = world_manifold.normal;
+      cp->state = state2[i];
+      ++m_point_count;
+    }
+}
+
+void base_sim_t::draw_title(int x, int y, const char *string)
+{
+    m_debug_draw.DrawString(x, y, string);
+}
+
+void base_sim_t::step(settings_t* settings)
+{
+  float32 time_step = settings->hz > 0.0f ? 1.0f / settings->hz : float32(0.0f);
+
+  if (settings->pause)
+    {
+      if (settings->single_step)
+  {
+    settings->single_step = 0;
+  }
+      else
+  {
+    time_step = 0.0f;
+  }
+      
+      m_debug_draw.DrawString(5, m_text_line, "****PAUSED****");
+      m_text_line += 15;
+    }
+  
+  uint32 flags = 0;
+  flags += settings->draw_shapes      * b2Draw::e_shapeBit;
+  flags += settings->draw_joints      * b2Draw::e_jointBit;
+  flags += settings->draw_AABBs     * b2Draw::e_aabbBit;
+  flags += settings->draw_pairs     * b2Draw::e_pairBit;
+  flags += settings->draw_COMs        * b2Draw::e_centerOfMassBit;
+  m_debug_draw.SetFlags(flags);
+  
+  m_world->SetWarmStarting(settings->enable_warm_starting > 0);
+  m_world->SetContinuousPhysics(settings->enable_continuous > 0);
+  m_world->SetSubStepping(settings->enable_sub_stepping > 0);
+  
+  m_point_count = 0;
+  
+  m_world->Step(time_step, settings->velocity_iterations, settings->position_iterations);
+  
+  m_world->DrawDebugData();
+  
+  if (time_step > 0.0f)
+    {
+      ++m_step_count;
+    }
+  
+  if (settings->draw_stats)
+    {
+      int32 body_count = m_world->GetBodyCount();
+      int32 contact_count = m_world->GetContactCount();
+      int32 joint_count = m_world->GetJointCount();
+      m_debug_draw.DrawString(5, m_text_line, "bodies/contacts/joints = %d/%d/%d", body_count, contact_count, joint_count);
+      m_text_line += 15;
+      
+      int32 proxy_count = m_world->GetProxyCount();
+      int32 height = m_world->GetTreeHeight();
+      int32 balance = m_world->GetTreeBalance();
+      float32 quality = m_world->GetTreeQuality();
+      m_debug_draw.DrawString(5, m_text_line, "proxies/height/balance/quality = %d/%d/%d/%g", proxy_count, height, balance, quality);
+      m_text_line += 15;
+    }
+  
+  // Track maximum profile times
+  {
+    const b2Profile& p = m_world->GetProfile();
+    m_max_profile.step = b2Max(m_max_profile.step, p.step);
+    m_max_profile.collide = b2Max(m_max_profile.collide, p.collide);
+    m_max_profile.solve = b2Max(m_max_profile.solve, p.solve);
+    m_max_profile.solveInit = b2Max(m_max_profile.solveInit, p.solveInit);
+    m_max_profile.solveVelocity = b2Max(m_max_profile.solveVelocity, p.solveVelocity);
+    m_max_profile.solvePosition = b2Max(m_max_profile.solvePosition, p.solvePosition);
+    m_max_profile.solveTOI = b2Max(m_max_profile.solveTOI, p.solveTOI);
+    m_max_profile.broadphase = b2Max(m_max_profile.broadphase, p.broadphase);
+    
+    m_total_profile.step += p.step;
+    m_total_profile.collide += p.collide;
+    m_total_profile.solve += p.solve;
+    m_total_profile.solveInit += p.solveInit;
+    m_total_profile.solveVelocity += p.solveVelocity;
+    m_total_profile.solvePosition += p.solvePosition;
+    m_total_profile.solveTOI += p.solveTOI;
+    m_total_profile.broadphase += p.broadphase;
+  }
+  
+  if (settings->draw_profile)
+    {
+      const b2Profile& p = m_world->GetProfile();
+      
+      b2Profile ave_profile;
+      memset(&ave_profile, 0, sizeof(b2Profile));
+      if (m_step_count > 0)
+  {
+    float32 scale = 1.0f / m_step_count;
+    ave_profile.step = scale * m_total_profile.step;
+    ave_profile.collide = scale * m_total_profile.collide;
+    ave_profile.solve = scale * m_total_profile.solve;
+    ave_profile.solveInit = scale * m_total_profile.solveInit;
+    ave_profile.solveVelocity = scale * m_total_profile.solveVelocity;
+    ave_profile.solvePosition = scale * m_total_profile.solvePosition;
+    ave_profile.solveTOI = scale * m_total_profile.solveTOI;
+    ave_profile.broadphase = scale * m_total_profile.broadphase;
+  }
+      
+      m_debug_draw.DrawString(5, m_text_line, "step [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.step, ave_profile.step, m_max_profile.step);
+      m_text_line += 15;
+      m_debug_draw.DrawString(5, m_text_line, "collide [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.collide, ave_profile.collide, m_max_profile.collide);
+      m_text_line += 15;
+      m_debug_draw.DrawString(5, m_text_line, "solve [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solve, ave_profile.solve, m_max_profile.solve);
+      m_text_line += 15;
+      m_debug_draw.DrawString(5, m_text_line, "solve init [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solveInit, ave_profile.solveInit, m_max_profile.solveInit);
+      m_text_line += 15;
+      m_debug_draw.DrawString(5, m_text_line, "solve velocity [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solveVelocity, ave_profile.solveVelocity, m_max_profile.solveVelocity);
+      m_text_line += 15;
+      m_debug_draw.DrawString(5, m_text_line, "solve position [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solvePosition, ave_profile.solvePosition, m_max_profile.solvePosition);
+      m_text_line += 15;
+      m_debug_draw.DrawString(5, m_text_line, "solveTOI [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solveTOI, ave_profile.solveTOI, m_max_profile.solveTOI);
+      m_text_line += 15;
+      m_debug_draw.DrawString(5, m_text_line, "broad-phase [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.broadphase, ave_profile.broadphase, m_max_profile.broadphase);
+      m_text_line += 15;
+    }
+    
+  if (settings->draw_contact_points)
+    {
+      //const float32 k_impulseScale = 0.1f;
+      const float32 k_axis_scale = 0.3f;
+      
+      for (int32 i = 0; i < m_point_count; ++i)
+  {
+    contact_point_t* point = m_points + i;
+    
+    if (point->state == b2_addState)
+      {
+        // Add
+        m_debug_draw.DrawPoint(point->position, 10.0f, b2Color(0.3f, 0.95f, 0.3f));
+      }
+    else if (point->state == b2_persistState)
+      {
+        // Persist
+        m_debug_draw.DrawPoint(point->position, 5.0f, b2Color(0.3f, 0.3f, 0.95f));
+      }
+    
+    if (settings->draw_contact_normals == 1)
+      {
+        b2Vec2 p1 = point->position;
+        b2Vec2 p2 = p1 + k_axis_scale * point->normal;
+        m_debug_draw.DrawSegment(p1, p2, b2Color(0.9f, 0.9f, 0.9f));
+      }
+    else if (settings->draw_contact_forces == 1)
+      {
+        //b2Vec2 p1 = point->position;
+        //b2Vec2 p2 = p1 + k_forceScale * point->normalForce * point->normal;
+        //DrawSegment(p1, p2, b2Color(0.9f, 0.9f, 0.3f));
+      }
+    
+    if (settings->draw_friction_forces == 1)
+      {
+        //b2Vec2 tangent = b2Cross(point->normal, 1.0f);
+        //b2Vec2 p1 = point->position;
+        //b2Vec2 p2 = p1 + k_forceScale * point->tangentForce * tangent;
+        //DrawSegment(p1, p2, b2Color(0.9f, 0.9f, 0.3f));
+      }
+  }
+    }
 }

@@ -32,8 +32,11 @@ namespace cs251
   class dominos_t : public base_sim_t
   {
   public:
-    
+    //static b2PrismaticJointDef launcherJoint;
+    //b2PrismaticJointDef launcherJoint;
+
     dominos_t();
+
 
     
     static base_sim_t* create()
